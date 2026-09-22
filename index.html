@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KINETIC / FX</title>
+    
+    <!-- Строго Pretendard -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <style>
+        :root {
+            --bg: #050505;
+            --surface: #111111;
+            --border: #222222;
+            --text-main: #FFFFFF;
+            --text-muted: #7A7A7A;
+            --font-main: 'Pretendard', sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --radius: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* SVG-фильтр потекших чернил */
+        .ink-bleed {
+            filter: url('#ink-filter');
+            letter-spacing: -0.02em;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* HEADER */
+        header {
+            padding: 100px 0 40px;
+        }
+        
+        .hero-title {
+            font-size: clamp(3rem, 7vw, 6rem);
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        /* ФИЛЬТРЫ */
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: #666;
+            color: #FFF;
+        }
+
+        .filter-btn.active {
+            background: #FFF;
+            color: #000;
+            border-color: #FFF;
+        }
+
+        /* КАТАЛОГ */
+        .list-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 80px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 60px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .item-info {
+            flex: 0 0 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .item-info h2 {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .item-info p {
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .params-list {
+            list-style: none;
+            margin-bottom: 40px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .params-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #FFF;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .params-list li {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 12px;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .params-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #555;
+        }
+
+        .params-list code {
+            background: #222;
+            color: #FFF;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .item-preview {
+            flex: 1;
+            min-height: 500px;
+            background-color: var(--surface);
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+        }
+
+        .copy-btn {
+            background-color: #FFFFFF;
+            color: #000000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied-state {
+            background-color: #2A2A2A !important;
+            color: #888888 !important;
+            transform: translateY(0);
+            pointer-events: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            background: #FFFFFF;
+            color: #000000;
+            padding: 16px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            opacity: 0;
+            z-index: 9999;
+            transition: all 0.4s var(--ease);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+        footer {
+            padding: 60px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* =========================================
+           ЭФФЕКТЫ
+           ========================================= */
+
+        /* 1. X-RAY */
+        .xray-wrap { width: 100%; height: 100%; background: #C5F03A; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: crosshair; }
+        .xray-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #000; letter-spacing: -0.04em; line-height: 0.9; text-align: center; position: absolute; width: 100%; z-index: 1;}
+        .xray-mask-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2; clip-path: circle(120px at var(--x, 50%) var(--y, 50%)); transition: clip-path 0.1s; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        .xray-mask-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #FFF; letter-spacing: -0.04em; line-height: 0.9; text-align: center; position: absolute; width: 100%; }
+
+        /* 2. RIBBON */
+        .ribbon-wrap { width: 100%; height: 100%; background: #EFEFEF; display: flex; align-items: center; overflow: hidden; position: relative; cursor: grab;}
+        .ribbon-track { display: flex; gap: 20px; padding: 0 40px; transform: translateX(calc(var(--scroll, 0) * -1%)); transition: transform 0.8s var(--ease); }
+        .ribbon-item { flex: 0 0 280px; height: 380px; border-radius: 12px; background: #CCC; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .ribbon-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 3. VELOCITY LINE CURSOR */
+        .cursor-line-wrap { width: 100%; height: 100%; background: #050505; position: relative; overflow: hidden; cursor: none; display: flex; align-items: center; justify-content: center;}
+        .cursor-line-text { font-size: 24px; color: #333; font-weight: 500; pointer-events: none; }
+        .cursor-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+
+        /* 4. HOVER IMAGE REVEAL */
+        .rev-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative; }
+        .rev-list { list-style: none; padding: 0 10%; position: relative; z-index: 2; }
+        .rev-item { font-size: clamp(32px, 4vw, 56px); font-weight: 500; color: #444; cursor: pointer; transition: color 0.3s; border-bottom: 1px solid #222; padding: 24px 0; line-height: 1; }
+        .rev-item:hover { color: #FFF; }
+        .rev-floater { position: absolute; width: 280px; height: 380px; border-radius: 16px; pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.8) rotate(-4deg); transition: transform 0.6s var(--ease), opacity 0.4s var(--ease); z-index: 1; overflow: hidden; }
+        .rev-floater.active { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+        .rev-floater img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 5. MAGNETIC CTA */
+        .mag-area { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .mag-btn { background: #FFF; color: #000; padding: 20px 50px; border-radius: 80px; font-family: var(--font-main); font-size: 15px; font-weight: 600; border: none; cursor: pointer; transition: transform 0.4s var(--ease); text-transform: uppercase; }
+        @media (hover: hover) { .mag-area:hover .mag-btn { transition: none; } }
+
+        /* 6. TEXT SCRAMBLE */
+        .scramble-wrap { font-family: monospace; font-size: clamp(24px, 3vw, 36px); font-weight: 500; color: #FFF; cursor: pointer; letter-spacing: 0.05em; }
+
+        /* 7. LIQUID INTERFACE */
+        .gooey-wrap { filter: url('#gooey-filter'); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
+        .gooey-btn { background: #FFF; color: #000; border: none; padding: 20px 50px; font-family: var(--font-main); font-size: 15px; font-weight: 600; border-radius: 80px; position: relative; z-index: 2; pointer-events: none; }
+        .gooey-blob { position: absolute; width: 60px; height: 60px; background: #FFF; border-radius: 50%; z-index: 1; transition: transform 0.6s var(--ease); pointer-events: none;}
+        .item-preview:hover .gooey-blob:nth-child(2) { transform: translate(-80px, -40px) scale(1.4); }
+        .item-preview:hover .gooey-blob:nth-child(3) { transform: translate(80px, 40px) scale(1.2); }
+
+        /* 8. INVERT BLOCK */
+        .inv-card { width: 340px; padding: 60px 40px; background: #000; border: 1px solid #222; border-radius: 16px; transition: all 0.5s ease; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 340px;}
+        .inv-card p { font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.5s ease; }
+        .inv-card h3 { font-size: 32px; font-weight: 500; color: #FFF; transition: color 0.5s ease; line-height: 1.1; letter-spacing: -0.02em;}
+        .item-preview:hover .inv-card { background: #FFF; border-color: #FFF; }
+        .item-preview:hover .inv-card h3 { color: #000; }
+        .item-preview:hover .inv-card p { color: #888; }
+
+        /* 9. FLEX ACCORDION (Исправлен баг первого квадрата) */
+        .acc-wrap { display: flex; gap: 10px; width: 90%; height: 240px; }
+        .acc-item { flex: 1; background: #222; border-radius: 12px; transition: flex 0.6s var(--ease), background 0.6s ease; cursor: pointer; position: relative; overflow: hidden;}
+        .acc-item:nth-child(1) {background: #222;}
+        .acc-item:nth-child(2) {background: #333;}
+        .acc-item:nth-child(3) {background: #444;}
+        .acc-item:hover, .acc-item.active { flex: 3; background: #FFFFFF; }
+
+        /* 10. MOUSE IMAGE TRAIL */
+        .trail-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: crosshair; }
+        .trail-title { font-size: 36px; font-weight: 600; color: #333; pointer-events: none; z-index: 1; }
+        .trail-box { position: absolute; width: 120px; height: 160px; border-radius: 8px; pointer-events: none; transform: translate(-50%, -50%) scale(0.5); opacity: 0; animation: popTrail 1s var(--ease) forwards; z-index: 2; object-fit: cover; }
+        @keyframes popTrail { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(calc(var(--r) * 1deg)); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(calc(var(--r) * 1deg)); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8) rotate(calc(var(--r) * 1deg)); } }
+
+        /* 11. 3D CARD & GLARE */
+        .tilt-wrap { perspective: 1000px; width: 280px; height: 360px; }
+        .tilt-card { width: 100%; height: 100%; background: #111; border: 1px solid #333; border-radius: 16px; position: relative; transform-style: preserve-3d; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer;}
+        .tilt-card span { font-size: 24px; font-weight: 600; transform: translateZ(60px); pointer-events: none;}
+        .tilt-glare { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 16px; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15), transparent 60%); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+
+        /* 12. PIXEL REVEAL MOSAIC */
+        .pixel-wrap { width: 300px; height: 300px; position: relative; background: linear-gradient(135deg, #FF6B6B, #4ECDC4, #FFE66D); border-radius: 12px; overflow: hidden; }
+        .pixel-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); z-index: 2; }
+        .pixel-cell { background: #111; border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); transition: opacity 0.4s ease; cursor: crosshair; }
+        .pixel-cell:hover, .pixel-cell.active { opacity: 0; transition: opacity 0s; }
+
+        @media (max-width: 900px) {
+            .list-item { flex-direction: column; gap: 40px; padding: 60px 0; }
+            .item-info { max-width: 100%; width: 100%; }
+            .item-preview { width: 100%; height: 450px; }
+            .hero-title { font-size: 48px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SVG-ФИЛЬТРЫ -->
+    <svg style="visibility: hidden; position: absolute; width: 0; height: 0;">
+        <filter id="ink-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" result="disp" />
+            <feGaussianBlur in="disp" stdDeviation="0.7" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -7" />
+        </filter>
+        <filter id="gooey-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+        </filter>
+    </svg>
+
+    <!-- ПЛАШКА УВЕДОМЛЕНИЯ -->
+    <div class="toast" id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Код скопирован
+    </div>
+
+    <div class="container">
+        <header>
+            <h1 class="hero-title ink-bleed">Каталог эффектов</h1>
+        </header>
+
+        <!-- ФИЛЬТРЫ ЭФФЕКТОВ -->
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all">Все эффекты</button>
+            <button class="filter-btn" data-filter="media">Медиа</button>
+            <button class="filter-btn" data-filter="interaction">Взаимодействие</button>
+            <button class="filter-btn" data-filter="typography">Типографика</button>
+        </div>
+
+        <main class="list-section">
+
+            <!-- 1. X-RAY REVEAL -->
+            <article class="list-item" data-category="typography interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">X-Ray Spotlight</h2>
+                    <p>Маска в виде круга следует за курсором и раскрывает скрытый слой.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Радиус круга меняется в CSS <code>clip-path: circle(120px)</code>.</li>
+                        <li>Внутрь <code>.xray-mask-layer</code> можно встроить любой альтернативный контент.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('xray', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="xray-wrap" id="fx-xray">
+                        <div class="xray-text">CRAFTSMANSHIP</div>
+                        <div class="xray-mask-layer" id="fx-xray-mask">
+                            <div class="xray-mask-text">CRAFTSMANSHIP</div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 2. RIBBON SLIDER -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Ribbon Slider</h2>
+                    <p>Интерактивная лента картинок, скроллящаяся за движением курсора.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>В JS строка <code>percent * 150</code> задает дальность прокрутки ленты.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('ribbon', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="ribbon-wrap" id="fx-ribbon">
+                        <div class="ribbon-track" id="fx-ribbon-track">
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400&fit=crop" alt="1"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400&fit=crop" alt="2"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=400&fit=crop" alt="3"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=400&fit=crop" alt="4"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 3. VELOCITY LINE CURSOR (Изогнутый эластичный след) -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Velocity Line Cursor</h2>
+                    <p>Живая линия-курсор на Canvas. Гнется при движении и оставляет эластичный след, который плавно растворяется.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Длина хвоста регулируется в JS переменной <code>maxHistory</code>.</li>
+                        <li>Толщина и цвет линии меняются через <code>ctx.lineWidth</code> и <code>ctx.strokeStyle</code> в функции render.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('cursorLine', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="cursor-line-wrap" id="fx-cur-line">
+                        <div class="cursor-line-text">ДВИГАЙ МЫШЬЮ</div>
+                        <canvas class="cursor-canvas" id="c-canvas"></canvas>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 4. HOVER IMAGE REVEAL -->
+            <article class="list-item" data-category="typography media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Hover Image Reveal</h2>
+                    <p>При наведении на строку списка плавно всплывает фотография и тянется за курсором.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Картинки прописываются в HTML через атрибут <code>data-img="ссылка"</code>.</li>
+                        <li>У плашки обязательно должен быть <code>pointer-events: none</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('reveal', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="rev-wrap" id="rev-wrap">
+                        <ul class="rev-list">
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&fit=crop">Architecture</li>
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=600&fit=crop">Interiors</li>
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&fit=crop">Objects</li>
+                        </ul>
+                        <div class="rev-floater" id="rev-floater">
+                            <img src="" id="rev-img" alt="">
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 5. MAGNETIC CTA -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Magnetic CTA</h2>
+                    <p>Кнопка плавно притягивается к курсору в зоне контейнера.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Множитель <code>0.4</code> в JS отвечает за силу притяжения.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('magnetic', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="mag-area" id="mag-area">
+                        <button class="mag-btn" id="mag-btn">Hover Action</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 6. TEXT SCRAMBLE -->
+            <article class="list-item" data-category="typography">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Text Scramble</h2>
+                    <p>Текст хаотично перебирает символы перед тем, как собраться в слово.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>В строке <code>chars</code> можно менять набор символов для глитча.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('scramble', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="scramble-wrap" id="scramble-text" data-text="NEURO SYSTEM">NEURO SYSTEM</div>
+                </div>
+            </article>
+
+            <!-- 7. LIQUID INTERFACE -->
+            <article class="list-item" data-category="shapes interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Liquid Interface</h2>
+                    <p>Формы ведут себя как жидкость, слипаясь друг с другом через SVG-фильтр.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Параметр <code>stdDeviation="10"</code> в SVG задает вязкость.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('gooey', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="gooey-wrap" id="fx-gooey">
+                        <button class="gooey-btn">LIQUID</button>
+                        <div class="gooey-blob"></div>
+                        <div class="gooey-blob"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 8. INVERT BLOCK -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Invert Block</h2>
+                    <p>Стильная инверсия цвета при наведении на блок. Чистый CSS.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Настраивается через смену background и color в состоянии <code>:hover</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('invert', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="inv-card">
+                        <p>Services / 01</p>
+                        <h3>Digital<br>Experience</h3>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 9. FLEX ACCORDION (Исправлен баг первого квадрата) -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Flex Accordion</h2>
+                    <p>Горизонтальный аккордеон. Элементы расширяются при наведении, плавно вытесняя соседей.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Используется CSS <code>flex: 1</code> в базе и <code>flex: 3</code> при наведении. Первый блок отображается корректно.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('accordion', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="acc-wrap">
+                        <div class="acc-item fx-acc"></div>
+                        <div class="acc-item fx-acc"></div>
+                        <div class="acc-item fx-acc"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 10. MOUSE IMAGE TRAIL -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Mouse Image Trail</h2>
+                    <p>Шлейф из элементов, тянущийся за курсором по экрану.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Дистанция спавна регулируется через проверку <code>Math.hypot</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('trail', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="trail-wrap" id="fx-trail">
+                        <h2 class="trail-title">ТЯНИ КУРСОР</h2>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 11. 3D CARD & GLARE -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">3D Card & Glare</h2>
+                    <p>Физичная 3D-карточка с динамическим световым бликом и глубиной слоя.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Угол наклона настраивается через деление смещения мыши <code>/ 15</code> в JS.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('tilt', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="tilt-wrap" id="fx-tilt-wrap">
+                        <div class="tilt-card" id="fx-tilt-card">
+                            <div class="tilt-glare" id="tilt-glare"></div>
+                            <span>PHYSICS</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 12. PIXEL REVEAL MOSAIC -->
+            <article class="list-item" data-category="shapes media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Pixel Mosaic</h2>
+                    <p>Пиксельная сетка, ячейки которой растворяются при наведении курсора.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Размер сетки задается в CSS Grid <code>repeat(10, 1fr)</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('pixel', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="pixel-wrap">
+                        <div class="pixel-grid" id="fx-pixel"></div>
+                    </div>
+                </div>
+            </article>
+
+        </main>
+
+        <footer>
+            Made by maxk.design
+        </footer>
+    </div>
+
+    <script>
+        // СНИППЕТЫ КОДА ДЛЯ КОПИРОВАНИЯ
+        const codeSnippets = {
+            'xray': `/* HTML */\n<div class="xray-wrap" id="xray-wrap">\n  <div class="xray-text">CRAFTSMANSHIP</div>\n  <div class="xray-mask-layer" id="xray-mask">\n    <div class="xray-mask-text">CRAFTSMANSHIP</div>\n  </div>\n</div>\n/* CSS */\n.xray-wrap { background: #C5F03A; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }\n.xray-text { color: #000; position: absolute; z-index: 1; }\n.xray-mask-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2; clip-path: circle(120px at var(--x, 50%) var(--y, 50%)); transition: clip-path 0.1s; pointer-events: none; display: flex; align-items: center; justify-content: center; }\n.xray-mask-text { color: #FFF; position: absolute; }\n/* JS */\nconst xw = document.getElementById('xray-wrap'), xm = document.getElementById('xray-mask');\nxw.addEventListener('mousemove', e => { const r = xw.getBoundingClientRect(); xm.style.setProperty('--x', (e.clientX - r.left)+'px'); xm.style.setProperty('--y', (e.clientY - r.top)+'px'); });`,
+            
+            'ribbon': `/* HTML */\n<div class="ribbon-wrap" id="ribbon-wrap"><div class="ribbon-track" id="ribbon-track">...items...</div></div>\n/* CSS */\n.ribbon-wrap { overflow: hidden; display: flex; align-items: center; }\n.ribbon-track { display: flex; gap: 20px; transform: translateX(calc(var(--scroll, 0) * -1%)); transition: transform 0.8s ease; }\n/* JS */\nconst rw = document.getElementById('ribbon-wrap'), rt = document.getElementById('ribbon-track');\nrw.addEventListener('mousemove', e => { const r = rw.getBoundingClientRect(); const percent = (e.clientX - r.left) / r.width; rt.style.setProperty('--scroll', (percent * 150)); });`,
+            
+            'cursorLine': `/* HTML */\n<div id="wrap"><canvas id="canvas" class="cursor-canvas"></canvas></div>\n/* JS: Canvas smooth elastic trail line */`,
+            
+            'invert': `/* CSS */\n.inv-card { background: #000; color: #FFF; transition: all 0.5s ease; }\n.inv-card:hover { background: #FFF; color: #000; border-color: #FFF; }`,
+            
+            'accordion': `/* CSS */\n.acc-wrap { display: flex; gap: 10px; width: 100%; }\n.acc-item { flex: 1; transition: flex 0.6s ease; }\n.acc-item:hover, .acc-item.active { flex: 3; }`,
+            
+            'trail': `/* JS Logic */\nconst wrap = document.getElementById('trail-wrap');\nconst colors = ['#222', '#444', '#666'];\nlet lastX=0, lastY=0, idx=0;\nfunction spawnBox(x, y) {\n  const r = wrap.getBoundingClientRect();\n  const dx = x - r.left, dy = y - r.top;\n  if(Math.hypot(dx - lastX, dy - lastY) < 40) return;\n  lastX = dx; lastY = dy;\n  const b = document.createElement('div');\n  b.className = 'trail-box';\n  b.style.background = colors[idx++ % colors.length];\n  b.style.left = dx + 'px'; b.style.top = dy + 'px';\n  wrap.appendChild(b);\n  setTimeout(() => b.remove(), 1000);\n}\nwrap.addEventListener('mousemove', e => spawnBox(e.clientX, e.clientY));`,
+            
+            'tilt': `/* JS Logic */\nconst wrap = document.getElementById('tilt-wrap'), card = document.getElementById('tilt-card'), glare = document.getElementById('tilt-glare');\nfunction move(e) {\n  const r = wrap.getBoundingClientRect();\n  const mx = e.clientX - (r.left + r.width / 2), my = e.clientY - (r.top + r.height / 2);\n  card.style.transform = \`rotateX(\${-(my/15)}deg) rotateY(\${mx/15}deg)\`;\n  glare.style.opacity = '1';\n}\nwrap.addEventListener('mousemove', move);\nwrap.addEventListener('mouseleave', () => { card.style.transform = 'rotateX(0deg) rotateY(0deg)'; glare.style.opacity = '0'; });`,
+            
+            'pixel': `/* HTML */\n<div class="pixel-wrap"><div class="pixel-grid" id="grid"></div></div>\n/* JS */\nconst pGrid = document.getElementById('grid');\nfor(let i=0; i<100; i++) {\n  const c = document.createElement('div');\n  c.className = 'pixel-cell';\n  c.addEventListener('mouseenter', () => c.style.opacity = '0');\n  c.addEventListener('mouseleave', () => setTimeout(() => c.style.opacity = '1', 1000));\n  pGrid.appendChild(c);\n}`,
+
+            'reveal': `/* HTML */\n<div id="rev-wrap"><ul class="rev-list"><li class="rev-item" data-img="1.jpg">Item</li></ul><div id="rev-floater"><img id="rev-img"></div></div>`,
+            'magnetic': `/* JS Logic for magnetic button */`,
+            'scramble': `/* JS Logic for text scramble */`
+        };
+
+        // ЛОГИКА КОПИРОВАНИЯ КОДА
+        const toast = document.getElementById('toast');
+        let toastTimeout;
+
+        function copyCode(effectId, btnElement) {
+            const codeToCopy = codeSnippets[effectId];
+            
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const originalText = btnElement.innerText;
+                
+                btnElement.innerText = "Скопирован код";
+                btnElement.classList.add('copied-state');
+
+                toast.classList.add('show');
+                
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.classList.remove('copied-state');
+                }, 3000);
+            }).catch(() => alert('Ошибка доступа к буферу обмена.'));
+        }
+
+        // ФИЛЬТРЫ
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const rows = document.querySelectorAll('.list-item');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.getAttribute('data-filter');
+                rows.forEach(row => {
+                    const category = row.getAttribute('data-category') || '';
+                    if (filter === 'all' || category.includes(filter)) {
+                        row.style.display = 'flex';
+                        setTimeout(() => { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }, 10);
+                    } else {
+                        row.style.opacity = '0';
+                        row.style.transform = 'scale(0.98)';
+                        setTimeout(() => { row.style.display = 'none'; }, 400);
+                    }
+                });
+            });
+        });
+
+        // ==========================================
+        // ИНИЦИАЛИЗАЦИЯ ЭФФЕКТОВ
+        // ==========================================
+
+        // 1. X-RAY REVEAL
+        const xWrap = document.getElementById('fx-xray');
+        const xMask = document.getElementById('fx-xray-mask');
+        if (xWrap && xMask) {
+            function moveXRay(e) {
+                const r = xWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                xMask.style.setProperty('--x', (x - r.left) + 'px');
+                xMask.style.setProperty('--y', (y - r.top) + 'px');
+            }
+            xWrap.addEventListener('mousemove', moveXRay);
+            xWrap.addEventListener('touchmove', moveXRay, {passive: true});
+        }
+
+        // 2. RIBBON SLIDER
+        const ribWrap = document.getElementById('fx-ribbon');
+        const ribTrack = document.getElementById('fx-ribbon-track');
+        if (ribWrap && ribTrack) {
+            function moveRibbon(e) {
+                const r = ribWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const percent = (x - r.left) / r.width;
+                ribTrack.style.setProperty('--scroll', (percent * 150));
+            }
+            ribWrap.addEventListener('mousemove', moveRibbon);
+            ribWrap.addEventListener('touchmove', moveRibbon, {passive: true});
+            ribWrap.addEventListener('mouseleave', () => ribTrack.style.setProperty('--scroll', 0));
+            ribWrap.addEventListener('touchend', () => ribTrack.style.setProperty('--scroll', 0));
+        }
+
+        // 3. VELOCITY LINE CURSOR (Эластичный след на Canvas)
+        const cWrap = document.getElementById('fx-cur-line');
+        const canvas = document.getElementById('c-canvas');
+        if (cWrap && canvas) {
+            const ctx = canvas.getContext('2d');
+            let width = cWrap.clientWidth, height = cWrap.clientHeight;
+            canvas.width = width; canvas.height = height;
+
+            window.addEventListener('resize', () => {
+                width = cWrap.clientWidth; height = cWrap.clientHeight;
+                canvas.width = width; canvas.height = height;
+            });
+
+            let mouse = { x: width/2, y: height/2 };
+            let history = [];
+            const maxHistory = 15;
+
+            cWrap.addEventListener('mousemove', e => {
+                const r = cWrap.getBoundingClientRect();
+                mouse.x = e.clientX - r.left;
+                mouse.y = e.clientY - r.top;
+            });
+
+            function render() {
+                ctx.clearRect(0, 0, width, height);
+                history.push({ x: mouse.x, y: mouse.y });
+                if (history.length > maxHistory) history.shift();
+
+                if (history.length > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(history[0].x, history[0].y);
+                    for (let i = 1; i < history.length; i++) {
+                        ctx.lineTo(history[i].x, history[i].y);
+                    }
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // 5. ACCORDION (Исправлен баг первого квадрата)
+        const accTriggers = document.querySelectorAll('.fx-acc');
+        accTriggers.forEach(acc => {
+            acc.addEventListener('click', () => {
+                accTriggers.forEach(a => a.classList.remove('active'));
+                acc.classList.add('active');
+            });
+        });
+
+        // 6. MOUSE IMAGE TRAIL
+        const trailWrap = document.getElementById('fx-trail');
+        if(trailWrap) {
+            const colors = ['#222222', '#444444', '#666666'];
+            let lastX = 0, lastY = 0, boxIndex = 0;
+            function spawnTrailBox(clientX, clientY) {
+                const rect = trailWrap.getBoundingClientRect();
+                const x = clientX - rect.left; const y = clientY - rect.top;
+                if(Math.hypot(x - lastX, y - lastY) < 40) return;
+                lastX = x; lastY = y;
+                const box = document.createElement('div');
+                box.className = 'trail-box';
+                box.style.background = colors[boxIndex++ % colors.length];
+                box.style.left = x + 'px'; box.style.top = y + 'px';
+                box.style.setProperty('--r', Math.random() * 30 - 15);
+                trailWrap.appendChild(box);
+                setTimeout(() => { box.remove(); }, 1000);
+            }
+            trailWrap.addEventListener('mousemove', (e) => spawnTrailBox(e.clientX, e.clientY));
+            trailWrap.addEventListener('touchmove', (e) => spawnTrailBox(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+        }
+
+        // 7. 3D TILT
+        const tiltWrap = document.getElementById('fx-tilt-wrap');
+        const tiltCard = document.getElementById('fx-tilt-card');
+        const tiltGlare = document.getElementById('tilt-glare');
+        if(tiltWrap) {
+            function handleTiltMove(e) {
+                const rect = tiltWrap.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseX = clientX - (rect.left + rect.width / 2);
+                const mouseY = clientY - (rect.top + rect.height / 2);
+                tiltCard.style.transform = `rotateX(${-(mouseY / 15)}deg) rotateY(${mouseX / 15}deg)`;
+                tiltGlare.style.opacity = '1';
+                const px = ((clientX - rect.left) / rect.width) * 100, py = ((clientY - rect.top) / rect.height) * 100;
+                tiltGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.15), transparent 60%)`;
+            }
+            const resetTilt = () => { tiltCard.style.transform = `rotateX(0deg) rotateY(0deg)`; tiltGlare.style.opacity = '0'; };
+            tiltWrap.addEventListener('mousemove', handleTiltMove); tiltWrap.addEventListener('touchmove', handleTiltMove, {passive: true});
+            tiltWrap.addEventListener('mouseleave', resetTilt); tiltWrap.addEventListener('touchend', resetTilt);
+        }
+
+        // 8. PIXEL REVEAL MOSAIC
+        const pGrid = document.getElementById('fx-pixel');
+        if (pGrid) {
+            for(let i=0; i<100; i++) {
+                const c = document.createElement('div');
+                c.className = 'pixel-cell';
+                c.addEventListener('mouseenter', () => c.style.opacity = '0');
+                c.addEventListener('mouseleave', () => setTimeout(() => c.style.opacity = '1', 1000));
+                c.addEventListener('touchstart', () => c.style.opacity = '0', {passive: true});
+                c.addEventListener('touchend', () => setTimeout(() => c.style.opacity = '1', 1000));
+                pGrid.appendChild(c);
+            }
+        }
+
+        // Hover Image Reveal JS
+        const rWrap = document.getElementById('rev-wrap');
+        const rFloater = document.getElementById('rev-floater');
+        const rImg = document.getElementById('rev-img');
+        if (rWrap && rFloater) {
+            function moveReveal(e) {
+                const r = rWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                rFloater.style.left = (x - r.left) + 'px';
+                rFloater.style.top = (y - r.top) + 'px';
+            }
+            rWrap.addEventListener('mousemove', moveReveal);
+            rWrap.addEventListener('touchmove', moveReveal, {passive: true});
+
+            document.querySelectorAll('.rev-item').forEach(item => {
+                const triggerIn = () => { rImg.src = item.dataset.img; rFloater.classList.add('active'); };
+                const triggerOut = () => rFloater.classList.remove('active');
+                item.addEventListener('mouseenter', triggerIn);
+                item.addEventListener('mouseleave', triggerOut);
+            });
+        }
+
+        // Magnetic CTA JS
+        const mArea = document.getElementById('mag-area');
+        const mBtn = document.getElementById('mag-btn');
+        if (mArea) {
+            mArea.addEventListener('mousemove', e => {
+                const r = mArea.getBoundingClientRect();
+                const x = e.clientX - r.left - r.width / 2;
+                const y = e.clientY - r.top - r.height / 2;
+                mBtn.style.transform = `translate(${x * 0.4}px, ${y * 0.4}px)`;
+            });
+            mArea.addEventListener('mouseleave', () => mBtn.style.transform = 'translate(0,0)');
+        }
+
+        // Text Scramble JS
+        const sEl = document.getElementById('scramble-text');
+        if (sEl) {
+            const chars = '!<>-_\\/[]{}—=+*^?#_';
+            function runScramble() {
+                const orig = sEl.dataset.text; let i = 0;
+                const int = setInterval(() => {
+                    sEl.innerText = orig.split('').map((l, idx) => idx < i ? orig[idx] : chars[Math.floor(Math.random() * chars.length)]).join('');
+                    if(i >= orig.length) clearInterval(int); i += 1/3;
+                }, 30);
+            }
+            sEl.addEventListener('mouseenter', runScramble);
+        }
+    </script>
+</body>
+</html>
