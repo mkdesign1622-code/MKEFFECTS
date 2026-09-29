@@ -42,9 +42,10 @@
             padding: 0 5%;
         }
 
-        /* HEADER */
+        /* HEADER (ОТЦЕНТРИРОВАН) */
         header {
             padding: 100px 0 40px;
+            text-align: center;
         }
         
         .hero-title {
@@ -55,13 +56,22 @@
             text-transform: uppercase;
         }
 
-        /* ФИЛЬТРЫ */
-        .filters {
+        /* ФИЛЬТРЫ И ПОИСК (ОТЦЕНТРИРОВАНЫ) */
+        .filters-wrap {
             display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
             padding-bottom: 40px;
             border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .filter-btn {
@@ -77,16 +87,24 @@
             transition: all 0.3s ease;
         }
 
-        .filter-btn:hover {
-            border-color: #666;
-            color: #FFF;
-        }
+        .filter-btn:hover { border-color: #666; color: #FFF; }
+        .filter-btn.active { background: #FFF; color: #000; border-color: #FFF; }
 
-        .filter-btn.active {
-            background: #FFF;
-            color: #000;
-            border-color: #FFF;
+        .search-input {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #FFF;
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: border-color 0.3s ease;
         }
+        .search-input:focus { border-color: #666; }
+        .search-input::placeholder { color: var(--text-muted); }
 
         /* КАТАЛОГ */
         .list-section {
@@ -98,7 +116,7 @@
             display: flex;
             align-items: stretch;
             justify-content: space-between;
-            padding: 80px 0;
+            padding: 40px 0 80px 0;
             border-bottom: 1px solid var(--border);
             gap: 60px;
             transition: opacity 0.4s ease, transform 0.4s ease;
@@ -111,18 +129,8 @@
             justify-content: center;
         }
 
-        .item-info h2 {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
-        .item-info p {
-            color: var(--text-muted);
-            font-size: 15px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
+        .item-info h2 { font-size: 32px; font-weight: 600; margin-bottom: 16px; }
+        .item-info p { color: var(--text-muted); font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
 
         .params-list {
             list-style: none;
@@ -133,38 +141,10 @@
             border-radius: 8px;
         }
         
-        .params-title {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #FFF;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .params-list li {
-            font-size: 14px;
-            color: #999;
-            margin-bottom: 12px;
-            padding-left: 16px;
-            position: relative;
-        }
-
-        .params-list li::before {
-            content: "•";
-            position: absolute;
-            left: 0;
-            color: #555;
-        }
-
-        .params-list code {
-            background: #222;
-            color: #FFF;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 13px;
-        }
+        .params-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #FFF; margin-bottom: 12px; font-weight: 600; }
+        .params-list li { font-size: 14px; color: #999; margin-bottom: 12px; padding-left: 16px; position: relative; }
+        .params-list li::before { content: "•"; position: absolute; left: 0; color: #555; }
+        .params-list code { background: #222; color: #FFF; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
 
         .item-preview {
             flex: 1;
@@ -192,17 +172,8 @@
             transition: all 0.3s ease;
             align-self: flex-start;
         }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .copy-btn.copied-state {
-            background-color: #2A2A2A !important;
-            color: #888888 !important;
-            transform: translateY(0);
-            pointer-events: none;
-        }
+        .copy-btn:hover { transform: translateY(-2px); }
+        .copy-btn.copied-state { background-color: #2A2A2A !important; color: #888888 !important; transform: translateY(0); pointer-events: none; }
 
         .toast {
             position: fixed;
@@ -225,16 +196,10 @@
         }
         .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-        footer {
-            padding: 60px 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-            font-weight: 500;
-        }
+        footer { padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 14px; font-weight: 500; }
 
         /* =========================================
-           ЭФФЕКТЫ
+           ЭФФЕКТЫ (1-16, 18) БЕЗ ИЗМЕНЕНИЙ
            ========================================= */
 
         /* 1. X-RAY */
@@ -286,7 +251,7 @@
         .item-preview:hover .inv-card h3 { color: #000; }
         .item-preview:hover .inv-card p { color: #888; }
 
-        /* 9. FLEX ACCORDION (Исправлен баг первого квадрата) */
+        /* 9. FLEX ACCORDION */
         .acc-wrap { display: flex; gap: 10px; width: 90%; height: 240px; }
         .acc-item { flex: 1; background: #222; border-radius: 12px; transition: flex 0.6s var(--ease), background 0.6s ease; cursor: pointer; position: relative; overflow: hidden;}
         .acc-item:nth-child(1) {background: #222;}
@@ -312,11 +277,96 @@
         .pixel-cell { background: #111; border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); transition: opacity 0.4s ease; cursor: crosshair; }
         .pixel-cell:hover, .pixel-cell.active { opacity: 0; transition: opacity 0s; }
 
+        /* 13. SPOTLIGHT GLOW */
+        .spotlight-wrap { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 40px; background: #050505; }
+        .spotlight-card { position: relative; width: 320px; height: 320px; background: rgba(255, 255, 255, 0.03); border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .spotlight-card::before { content: ""; position: absolute; top: var(--y, -1000px); left: var(--x, -1000px); transform: translate(-50%, -50%); width: 450px; height: 450px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .spotlight-card:hover::before { opacity: 1; transition: opacity 0.1s ease; }
+        .spotlight-card::after { content: ""; position: absolute; inset: 1px; background: #0a0a0a; border-radius: 19px; z-index: 1; }
+        .spotlight-content { position: relative; z-index: 2; text-align: center; color: #FFF; pointer-events: none; }
+        .spotlight-content h3 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+        .spotlight-content p { color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* 14. KINETIC NOISE */
+        .noise-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; background: #111; display: flex; align-items: center; justify-content: center; }
+        .noise-bg { position: absolute; inset: -50%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E"); animation: noise-anim 0.2s infinite; pointer-events: none; z-index: 1; }
+        .noise-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #FFF; position: relative; z-index: 2; text-align: center; line-height: 0.9; letter-spacing: -0.04em; pointer-events: none;}
+        @keyframes noise-anim { 0% { transform: translate(0,0); } 10% { transform: translate(-5%,-5%); } 20% { transform: translate(-10%,5%); } 30% { transform: translate(5%,-10%); } 40% { transform: translate(-5%,15%); } 50% { transform: translate(-10%,5%); } 60% { transform: translate(15%,0); } 70% { transform: translate(0,10%); } 80% { transform: translate(-15%,0); } 90% { transform: translate(10%,5%); } 100% { transform: translate(5%,0); } }
+
+        /* 15. EXPANDING PILL NAV */
+        .pill-wrap { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #050505; }
+        .pill-nav { --dur: 0.6s; --w: 420px; --bg: #EEEEEE; background: var(--bg); height: 64px; border-radius: 40px; display: flex; align-items: center; padding: 0 24px; width: 140px; overflow: hidden; cursor: pointer; transition: width var(--dur) var(--ease); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .pill-nav:hover { width: var(--w); }
+        .pill-logo { font-size: 20px; font-weight: 800; color: #111; flex-shrink: 0; font-family: 'Pretendard', sans-serif; letter-spacing: -0.02em; }
+        .pill-links { display: flex; gap: 24px; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity calc(var(--dur) - 0.2s) ease; margin-left: auto; padding-right: 12px; }
+        .pill-nav:hover .pill-links { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+        .pill-link { color: #111; text-decoration: none; font-size: 15px; font-weight: 600; transition: opacity 0.2s; }
+        .pill-link:hover { opacity: 0.5; }
+        .pill-icon { display: flex; flex-direction: column; gap: 4px; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; }
+        .pill-icon-dot { width: 4px; height: 4px; background: #111; border-radius: 50%; }
+        .pill-nav:hover .pill-icon { opacity: 0; position: absolute; pointer-events: none; }
+
+        /* 16. DIRECTIONAL UNDERLINE */
+        .dir-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: #050505; }
+        .dir-link { font-size: clamp(32px, 4vw, 56px); font-weight: 600; color: #FFF; text-decoration: none; position: relative; display: inline-block; letter-spacing: -0.02em; }
+        .dir-link::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: #FFF; transform: scaleX(0); transform-origin: var(--origin, 50%); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .dir-link:hover::after { transform: scaleX(1); }
+
+        /* =========================================
+           ЭФФЕКТ 17: ИСТИННЫЙ DIFFERENCE BLEND НА ТЕКСТ
+           ========================================= */
+        .diff-wrap {
+            width: 100%; height: 100%;
+            position: relative; overflow: hidden;
+            background: #000; /* Резервный фон */
+            display: flex; align-items: center; justify-content: center;
+        }
+        .diff-bg-img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            transition: transform 0.6s var(--ease);
+        }
+        /* Легкая динамика при наведении, чтобы картинка немного двигалась под текстом */
+        .diff-wrap:hover .diff-bg-img {
+            transform: scale(1.05); 
+        }
+        .diff-text {
+            position: relative;
+            z-index: 2;
+            font-size: clamp(40px, 8vw, 120px);
+            font-weight: 800;
+            /* Белый цвет дает самую правильную и яркую инверсию */
+            color: #FFF; 
+            text-align: center;
+            line-height: 0.9;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            /* МАГИЯ НАЛОЖЕНИЯ ПРЯМО НА ТЕКСТ */
+            mix-blend-mode: difference; 
+            pointer-events: none;
+        }
+
+        /* 18. SMART CUSTOM CURSOR */
+        .cursor-showcase { position: relative; overflow: hidden; cursor: none; background: #050505; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .cursor-showcase * { cursor: none !important; }
+        .cc-dot { position: absolute; top: 0; left: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #C5F03A; border-radius: 50%; pointer-events: none; z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease; transform: translate(var(--x, -100px), var(--y, -100px)) scale(var(--scale, 1)); }
+        .cc-follower { position: absolute; top: 0; left: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 1px solid rgba(197, 240, 58, 0.6); border-radius: 50%; pointer-events: none; z-index: 9; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease; transform: translate(var(--fx, -100px), var(--fy, -100px)) scale(var(--scale, 1)); }
+        .cc-dot.hover { --scale: 0.5; background: #FFF; }
+        .cc-follower.hover { --scale: 0.6; border-color: transparent; background: rgba(255,255,255,0.1); }
+        .cc-dot.click { --scale: 0.3; }
+        .cc-follower.click { --scale: 0.8; background: rgba(255,255,255,0.2); }
+        .cc-btn { background: #111; color: #FFF; border: 1px solid #333; padding: 20px 40px; font-size: 16px; font-family: var(--font-main); font-weight: 600; border-radius: 100px; transition: all 0.3s ease; }
+        .cc-btn:hover { background: #222; border-color: #555; }
+
         @media (max-width: 900px) {
             .list-item { flex-direction: column; gap: 40px; padding: 60px 0; }
             .item-info { max-width: 100%; width: 100%; }
             .item-preview { width: 100%; height: 450px; }
             .hero-title { font-size: 48px; }
+            .search-input { max-width: 100%; }
         }
     </style>
 </head>
@@ -346,17 +396,21 @@
     </div>
 
     <div class="container">
+        <!-- ОТЦЕНТРИРОВАННЫЙ ЗАГОЛОВОК И ПОИСК -->
         <header>
             <h1 class="hero-title ink-bleed">Каталог эффектов</h1>
+            
+            <div class="filters-wrap">
+                <div class="filters" id="filters">
+                    <button class="filter-btn active" data-filter="all">Все эффекты</button>
+                    <button class="filter-btn" data-filter="media">Медиа</button>
+                    <button class="filter-btn" data-filter="interaction">Взаимодействие</button>
+                    <button class="filter-btn" data-filter="typography">Типографика</button>
+                    <button class="filter-btn" data-filter="shapes">Формы</button>
+                </div>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по эффектам...">
+            </div>
         </header>
-
-        <!-- ФИЛЬТРЫ ЭФФЕКТОВ -->
-        <div class="filters" id="filters">
-            <button class="filter-btn active" data-filter="all">Все эффекты</button>
-            <button class="filter-btn" data-filter="media">Медиа</button>
-            <button class="filter-btn" data-filter="interaction">Взаимодействие</button>
-            <button class="filter-btn" data-filter="typography">Типографика</button>
-        </div>
 
         <main class="list-section">
 
@@ -405,7 +459,7 @@
                 </div>
             </article>
 
-            <!-- 3. VELOCITY LINE CURSOR (Изогнутый эластичный след) -->
+            <!-- 3. VELOCITY LINE CURSOR -->
             <article class="list-item" data-category="interaction">
                 <div class="item-info">
                     <h2 class="ink-bleed">Velocity Line Cursor</h2>
@@ -524,7 +578,7 @@
                 </div>
             </article>
 
-            <!-- 9. FLEX ACCORDION (Исправлен баг первого квадрата) -->
+            <!-- 9. FLEX ACCORDION -->
             <article class="list-item" data-category="interaction">
                 <div class="item-info">
                     <h2 class="ink-bleed">Flex Accordion</h2>
@@ -601,6 +655,145 @@
                 </div>
             </article>
 
+            <!-- 13. SPOTLIGHT GLOW CARD -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Spotlight Glow</h2>
+                    <p>Карточка с неоновой подсветкой, которая мягко следует за курсором мыши, освещая внутренние границы.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>В CSS цвет свечения меняется через <code>rgba(255, 255, 255, 0.15)</code> в свойстве <code>radial-gradient</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('spotlight', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="spotlight-wrap">
+                        <div class="spotlight-card" id="fx-spotlight-card">
+                            <div class="spotlight-content">
+                                <h3>Glow Effect</h3>
+                                <p>Наведи на меня</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 14. FILM GRAIN NOISE -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Film Grain Noise</h2>
+                    <p>Динамический анимированный шум (grain) через SVG-фильтр. Не нагружает браузер и добавляет визуалу дороговизны.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Размер зерна меняется атрибутом <code>baseFrequency="0.85"</code> внутри SVG Data-URI.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('noise', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="noise-wrap">
+                        <div class="noise-bg"></div>
+                        <h3 class="noise-text">GRAIN<br>TEXTURE</h3>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 15. EXPANDING PILL NAV -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Expanding Pill Nav</h2>
+                    <p>Компактный хэдер в форме пилюли с логотипом, который плавно раскрывается по горизонтали при наведении, показывая скрытые ссылки.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Скорость анимации меняется в переменной <code>--dur</code> в классе <code>.pill-nav</code>.</li>
+                        <li>Максимальная ширина раскрытия задается в <code>--w</code>.</li>
+                        <li>Цвет фона задается в <code>--bg</code>.</li>
+                        <li>Ссылки добавляются автоматически — просто дублируй теги <code>&lt;a class="pill-link"&gt;</code> внутри контейнера <code>.pill-links</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('pillnav', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="pill-wrap">
+                        <nav class="pill-nav">
+                            <div class="pill-logo">Logo</div>
+                            <div class="pill-links">
+                                <a href="#" class="pill-link">Work</a>
+                                <a href="#" class="pill-link">Studio</a>
+                                <a href="#" class="pill-link">Contact</a>
+                            </div>
+                            <div class="pill-icon">
+                                <div class="pill-icon-dot"></div>
+                                <div class="pill-icon-dot"></div>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 16. DIRECTIONAL UNDERLINE -->
+            <article class="list-item" data-category="typography interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Directional Underline</h2>
+                    <p>Линия подчеркивания появляется и скрывается точно с той стороны, откуда курсор наведен на текст.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Толщина и отступ меняются в <code>.dir-link::after</code> (свойства height и bottom).</li>
+                        <li>Скрипт автоматически вычисляет точную координату мыши в процентах для смены <code>transform-origin</code>, создавая эффект линии, вырастающей прямо из-под курсора.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('dirUnderline', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="dir-wrap">
+                        <a href="#" class="dir-link">Подчеркивание</a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ========================================= -->
+            <!-- 17. ИСТИННЫЙ DIFFERENCE BLEND (НА ТЕКСТ) -->
+            <!-- ========================================= -->
+            <article class="list-item" data-category="typography media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Difference Blend</h2>
+                    <p>Эффект инверсии через <code>mix-blend-mode: difference</code>, наложенный прямо на текст поверх фотографии. Идеально подстраивается под цвета сложного фона.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>В качестве фона используется предоставленное фото <code>IMG_0036.jpg</code>.</li>
+                        <li>Текст должен быть белого цвета (<code>color: #FFF</code>), чтобы инверсия на фоне сработала на 100%.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('difference', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="diff-wrap">
+                        <!-- Твоя фотография на фоне -->
+                        <img src="IMG_0036.jpg" class="diff-bg-img" alt="bg">
+                        <!-- Текст с эффектом difference поверх картинки -->
+                        <div class="diff-text">DIFFERENCE</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 18. SMART CUSTOM CURSOR -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">Smart Custom Cursor</h2>
+                    <p>Полностью кастомизируемый курсор с плавным шлейфом. Чувствителен к контексту: при наведении на кнопку он аккуратно сжимается, а при клике пульсирует.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>В CSS класс <code>.cc-dot</code> отвечает за сам курсор (можно добавить <code>background-image: url(...)</code> для своей фотки или иконки).</li>
+                        <li>В CSS класс <code>.cc-follower</code> отвечает за кольцо шлейфа (меняется цвет границ, прозрачность, толщина).</li>
+                        <li>Степень сжатия при ховере меняется в переменной <code>--scale</code> внутри состояний <code>.hover</code> и <code>.click</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('customCursor', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="cursor-showcase" id="fx-cc-wrap">
+                        <div class="cc-dot" id="fx-cc-dot"></div>
+                        <div class="cc-follower" id="fx-cc-follower"></div>
+                        <button class="cc-btn" id="fx-cc-btn">Наведи и кликни</button>
+                    </div>
+                </div>
+            </article>
+
         </main>
 
         <footer>
@@ -629,10 +822,23 @@
 
             'reveal': `/* HTML */\n<div id="rev-wrap"><ul class="rev-list"><li class="rev-item" data-img="1.jpg">Item</li></ul><div id="rev-floater"><img id="rev-img"></div></div>`,
             'magnetic': `/* JS Logic for magnetic button */`,
-            'scramble': `/* JS Logic for text scramble */`
+            'scramble': `/* JS Logic for text scramble */`,
+            
+            'spotlight': `/* HTML */\n<div class="spotlight-card">\n  <div class="spotlight-content">Glow</div>\n</div>\n/* CSS */\n.spotlight-card { position: relative; overflow: hidden; background: #111; }\n.spotlight-card::before { content: ""; position: absolute; top: var(--y); left: var(--x); transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s; }\n.spotlight-card:hover::before { opacity: 1; }\n.spotlight-card::after { content: ""; position: absolute; inset: 1px; background: #0a0a0a; z-index: 1; }\n.spotlight-content { position: relative; z-index: 2; }\n/* JS */\nconst el = document.querySelector('.spotlight-card');\nel.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--x', (e.clientX - r.left)+'px'); el.style.setProperty('--y', (e.clientY - r.top)+'px'); });`,
+            
+            'noise': `/* HTML */\n<div class="noise-wrap"><div class="noise-bg"></div></div>\n/* CSS */\n.noise-wrap { position: relative; overflow: hidden; background: #111; }\n.noise-bg { position: absolute; inset: -50%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E"); animation: noise 0.2s infinite; pointer-events: none; }\n@keyframes noise { 0% { transform: translate(0,0); } 50% { transform: translate(-5%,5%); } 100% { transform: translate(5%,-5%); } }`,
+
+            'pillnav': `/* HTML */\n<nav class="pill-nav">\n  <div class="pill-logo">Logo</div>\n  <div class="pill-links">\n    <a href="#" class="pill-link">Work</a>\n    <a href="#" class="pill-link">Studio</a>\n    <a href="#" class="pill-link">Contact</a>\n  </div>\n  <div class="pill-icon"><div class="pill-icon-dot"></div><div class="pill-icon-dot"></div></div>\n</nav>\n/* CSS */\n.pill-nav { --dur: 0.6s; --w: 420px; --bg: #EEEEEE; background: var(--bg); height: 64px; border-radius: 40px; display: flex; align-items: center; padding: 0 24px; width: 140px; overflow: hidden; cursor: pointer; transition: width var(--dur) cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }\n.pill-nav:hover { width: var(--w); }\n.pill-logo { font-size: 20px; font-weight: 800; color: #111; flex-shrink: 0; letter-spacing: -0.02em; }\n.pill-links { display: flex; gap: 24px; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity calc(var(--dur) - 0.2s) ease; margin-left: auto; padding-right: 12px; }\n.pill-nav:hover .pill-links { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }\n.pill-link { color: #111; text-decoration: none; font-size: 15px; font-weight: 600; transition: opacity 0.2s; }\n.pill-link:hover { opacity: 0.5; }\n.pill-icon { display: flex; flex-direction: column; gap: 4px; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; }\n.pill-icon-dot { width: 4px; height: 4px; background: #111; border-radius: 50%; }\n.pill-nav:hover .pill-icon { opacity: 0; position: absolute; pointer-events: none; }`,
+            
+            'dirUnderline': `/* HTML */\n<a href="#" class="dir-link">Подчеркивание</a>\n/* CSS */\n.dir-link { position: relative; text-decoration: none; display: inline-block; color: #FFF; }\n.dir-link::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: #FFF; transform: scaleX(0); transform-origin: var(--origin, 50%); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }\n.dir-link:hover::after { transform: scaleX(1); }\n/* JS */\ndocument.querySelectorAll('.dir-link').forEach(link => {\n  const updateOrigin = (e) => {\n    const rect = link.getBoundingClientRect();\n    const percent = ((e.clientX - rect.left) / rect.width) * 100;\n    link.style.setProperty('--origin', \`\${percent}%\`);\n  };\n  link.addEventListener('mouseenter', updateOrigin);\n  link.addEventListener('mouseleave', updateOrigin);\n});`,
+
+            // СНИППЕТ ДЛЯ DIFFERENCE BLEND НА ТЕКСТ (17)
+            'difference': `/* HTML */\n<div class="diff-wrap">\n  <img src="IMG_0036.jpg" class="diff-bg-img" alt="bg">\n  <div class="diff-text">DIFFERENCE</div>\n</div>\n/* CSS */\n.diff-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }\n.diff-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.6s ease; }\n.diff-wrap:hover .diff-bg-img { transform: scale(1.05); }\n.diff-text { position: relative; z-index: 2; font-size: clamp(40px, 8vw, 120px); font-weight: 800; color: #FFF; mix-blend-mode: difference; pointer-events: none; }`,
+
+            'customCursor': `/* HTML */\n<div class="cursor-wrap" id="cursor-wrap">\n  <div class="cc-dot" id="cc-dot"></div>\n  <div class="cc-follower" id="cc-follower"></div>\n  <button class="cc-btn" id="cc-btn">Hover Me</button>\n</div>\n/* CSS */\n.cursor-wrap { position: relative; overflow: hidden; cursor: none; }\n.cursor-wrap * { cursor: none !important; }\n.cc-dot { position: absolute; top: 0; left: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #C5F03A; border-radius: 50%; pointer-events: none; z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease; transform: translate(var(--x, -100px), var(--y, -100px)) scale(var(--scale, 1)); }\n.cc-follower { position: absolute; top: 0; left: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 1px solid rgba(197, 240, 58, 0.6); border-radius: 50%; pointer-events: none; z-index: 9; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease; transform: translate(var(--fx, -100px), var(--fy, -100px)) scale(var(--scale, 1)); }\n.cc-dot.hover { --scale: 0.5; background: #FFF; }\n.cc-follower.hover { --scale: 0.6; border-color: transparent; background: rgba(255,255,255,0.1); }\n.cc-dot.click { --scale: 0.3; }\n.cc-follower.click { --scale: 0.8; background: rgba(255,255,255,0.2); }\n/* JS */\nconst cw = document.getElementById('cursor-wrap'), cd = document.getElementById('cc-dot'), cf = document.getElementById('cc-follower'), cb = document.getElementById('cc-btn');\nlet mx=0, my=0, dx=0, dy=0, fx=0, fy=0;\ncw.addEventListener('mousemove', e => { const r = cw.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; });\nfunction anim() { dx += (mx - dx) * 0.5; dy += (my - dy) * 0.5; fx += (mx - fx) * 0.15; fy += (my - fy) * 0.15; cd.style.setProperty('--x', \`\${dx}px\`); cd.style.setProperty('--y', \`\${dy}px\`); cf.style.setProperty('--fx', \`\${fx}px\`); cf.style.setProperty('--fy', \`\${fy}px\`); requestAnimationFrame(anim); } anim();\nif(cb) { cb.addEventListener('mouseenter', () => { cd.classList.add('hover'); cf.classList.add('hover'); }); cb.addEventListener('mouseleave', () => { cd.classList.remove('hover'); cf.classList.remove('hover'); cd.classList.remove('click'); cf.classList.remove('click'); }); cb.addEventListener('mousedown', () => { cd.classList.add('click'); cf.classList.add('click'); }); cb.addEventListener('mouseup', () => { cd.classList.remove('click'); cf.classList.remove('click'); }); }`
         };
 
-        // ЛОГИКА КОПИРОВАНИЯ КОДА
+        // ЛОГИКА УВЕДОМЛЕНИЯ ПРИ КОПИРОВАНИИ
         const toast = document.getElementById('toast');
         let toastTimeout;
 
@@ -656,26 +862,43 @@
             }).catch(() => alert('Ошибка доступа к буферу обмена.'));
         }
 
-        // ФИЛЬТРЫ
+        // ==========================================
+        // ЛОГИКА ФИЛЬТРАЦИИ И ПОИСКА
+        // ==========================================
+        const searchInput = document.getElementById('search-input');
         const filterBtns = document.querySelectorAll('.filter-btn');
         const rows = document.querySelectorAll('.list-item');
+
+        function applyFilters() {
+            const query = searchInput.value.toLowerCase();
+            const activeBtn = document.querySelector('.filter-btn.active');
+            const activeFilter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
+
+            rows.forEach(row => {
+                const category = row.getAttribute('data-category') || '';
+                const title = row.querySelector('.item-info h2').innerText.toLowerCase();
+                
+                const matchesFilter = (activeFilter === 'all' || category.includes(activeFilter));
+                const matchesSearch = title.includes(query);
+
+                if (matchesFilter && matchesSearch) {
+                    row.style.display = 'flex';
+                    setTimeout(() => { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }, 10);
+                } else {
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.98)';
+                    setTimeout(() => { row.style.display = 'none'; }, 400);
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', applyFilters);
 
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 filterBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                const filter = btn.getAttribute('data-filter');
-                rows.forEach(row => {
-                    const category = row.getAttribute('data-category') || '';
-                    if (filter === 'all' || category.includes(filter)) {
-                        row.style.display = 'flex';
-                        setTimeout(() => { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }, 10);
-                    } else {
-                        row.style.opacity = '0';
-                        row.style.transform = 'scale(0.98)';
-                        setTimeout(() => { row.style.display = 'none'; }, 400);
-                    }
-                });
+                applyFilters(); 
             });
         });
 
@@ -714,7 +937,7 @@
             ribWrap.addEventListener('touchend', () => ribTrack.style.setProperty('--scroll', 0));
         }
 
-        // 3. VELOCITY LINE CURSOR (Эластичный след на Canvas)
+        // 3. VELOCITY LINE CURSOR
         const cWrap = document.getElementById('fx-cur-line');
         const canvas = document.getElementById('c-canvas');
         if (cWrap && canvas) {
@@ -759,7 +982,7 @@
             render();
         }
 
-        // 5. ACCORDION (Исправлен баг первого квадрата)
+        // 5. ACCORDION
         const accTriggers = document.querySelectorAll('.fx-acc');
         accTriggers.forEach(acc => {
             acc.addEventListener('click', () => {
@@ -874,6 +1097,104 @@
             }
             sEl.addEventListener('mouseenter', runScramble);
         }
+
+        // 13. SPOTLIGHT GLOW JS
+        const spotCard = document.getElementById('spotlight-card');
+        if(spotCard) {
+            spotCard.addEventListener('mousemove', (e) => {
+                const rect = spotCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                spotCard.style.setProperty('--x', `${x}px`);
+                spotCard.style.setProperty('--y', `${y}px`);
+            });
+        }
+
+        // 16. DIRECTIONAL UNDERLINE JS
+        const dirLinks = document.querySelectorAll('.dir-link');
+        dirLinks.forEach(link => {
+            const updateOrigin = (e) => {
+                const rect = link.getBoundingClientRect();
+                const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                link.style.setProperty('--origin', `${percent}%`);
+            };
+            link.addEventListener('mouseenter', updateOrigin);
+            link.addEventListener('mouseleave', updateOrigin);
+        });
+
+        // 18. SMART CUSTOM CURSOR JS
+        const ccWrap = document.getElementById('fx-cc-wrap');
+        const ccDot = document.getElementById('fx-cc-dot');
+        const ccFol = document.getElementById('fx-cc-follower');
+        const ccBtn = document.getElementById('fx-cc-btn');
+
+        if (ccWrap && ccDot && ccFol) {
+            let mX = 0, mY = 0;       
+            let dotX = 0, dotY = 0;   
+            let folX = 0, folY = 0;   
+            let isCcHovering = false;
+
+            ccWrap.addEventListener('mousemove', e => {
+                const r = ccWrap.getBoundingClientRect();
+                mX = e.clientX - r.left;
+                mY = e.clientY - r.top;
+                
+                if(!isCcHovering) {
+                    dotX = folX = mX; 
+                    dotY = folY = mY;
+                    isCcHovering = true;
+                    ccDot.style.opacity = 1;
+                    ccFol.style.opacity = 1;
+                }
+            });
+            
+            ccWrap.addEventListener('mouseleave', () => {
+                isCcHovering = false;
+                ccDot.style.opacity = 0;
+                ccFol.style.opacity = 0;
+            });
+            
+            ccDot.style.opacity = 0;
+            ccFol.style.opacity = 0;
+
+            function animateCustomCursor() {
+                if (isCcHovering) {
+                    dotX += (mX - dotX) * 0.5;
+                    dotY += (mY - dotY) * 0.5;
+                    folX += (mX - folX) * 0.15;
+                    folY += (mY - folY) * 0.15;
+                    
+                    ccDot.style.setProperty('--x', `${dotX}px`);
+                    ccDot.style.setProperty('--y', `${dotY}px`);
+                    ccFol.style.setProperty('--fx', `${folX}px`);
+                    ccFol.style.setProperty('--fy', `${folY}px`);
+                }
+                requestAnimationFrame(animateCustomCursor);
+            }
+            animateCustomCursor();
+
+            if(ccBtn) {
+                ccBtn.addEventListener('mouseenter', () => {
+                    ccDot.classList.add('hover');
+                    ccFol.classList.add('hover');
+                });
+                ccBtn.addEventListener('mouseleave', () => {
+                    ccDot.classList.remove('hover');
+                    ccFol.classList.remove('hover');
+                    ccDot.classList.remove('click');
+                    ccFol.classList.remove('click');
+                });
+                ccBtn.addEventListener('mousedown', () => {
+                    ccDot.classList.add('click');
+                    ccFol.classList.add('click');
+                });
+                ccBtn.addEventListener('mouseup', () => {
+                    ccDot.classList.remove('click');
+                    ccFol.classList.remove('click');
+                });
+            }
+        }
+
     </script>
 </body>
 </html>
