@@ -1,0 +1,2959 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKEFFECTS</title>
+    
+    <!-- Строго Pretendard -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    
+    <style>
+        :root {
+            --bg: #050505;
+            --surface: #111111;
+            --border: #222222;
+            --text-main: #FFFFFF;
+            --text-muted: #7A7A7A;
+            --font-main: 'Pretendard', sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --radius: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* SVG-фильтр потекших чернил */
+        .ink-bleed {
+            filter: url('#ink-filter');
+            letter-spacing: -0.02em;
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        /* HEADER (ОТЦЕНТРИРОВАН) */
+        header {
+            padding: 100px 0 40px;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: clamp(3rem, 7vw, 6rem);
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        /* ФИЛЬТРЫ И ПОИСК (ОТЦЕНТРИРОВАНЫ) */
+        .filters-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover { border-color: #666; color: #FFF; }
+        .filter-btn.active { background: #FFF; color: #000; border-color: #FFF; }
+
+        .search-input {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #FFF;
+            padding: 14px 24px;
+            border-radius: 100px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .search-input:focus { border-color: #666; }
+        .search-input::placeholder { color: var(--text-muted); }
+
+        /* КАТАЛОГ */
+        .list-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 40px 0 80px 0;
+            border-bottom: 1px solid var(--border);
+            gap: 60px;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .item-info {
+            flex: 0 0 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .item-info h2 { font-size: 32px; font-weight: 600; margin-bottom: 16px; }
+        .item-info p { color: var(--text-muted); font-size: 15px; line-height: 1.5; margin-bottom: 24px; }
+
+        .params-list {
+            list-style: none;
+            margin-bottom: 40px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .params-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #FFF; margin-bottom: 12px; font-weight: 600; }
+        .params-list li { font-size: 14px; color: #999; margin-bottom: 12px; padding-left: 16px; position: relative; }
+        .params-list li::before { content: "•"; position: absolute; left: 0; color: #555; }
+        .params-list code { background: #222; color: #FFF; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+
+        .item-preview {
+            flex: 1;
+            min-height: 500px;
+            background-color: var(--surface);
+            border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+        }
+
+        .copy-btn {
+            background-color: #FFFFFF;
+            color: #000000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-start;
+        }
+        .copy-btn:hover { transform: translateY(-2px); }
+        .copy-btn.copied-state { background-color: #2A2A2A !important; color: #888888 !important; transform: translateY(0); pointer-events: none; }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            background: #FFFFFF;
+            color: #000000;
+            padding: 16px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            opacity: 0;
+            z-index: 9999;
+            transition: all 0.4s var(--ease);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+        footer { padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 14px; font-weight: 500; }
+
+        /* =========================================
+           ЭФФЕКТЫ (1-24) 
+           ========================================= */
+        .xray-wrap { width: 100%; height: 100%; background: #C5F03A; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: crosshair; }
+        .xray-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #000; letter-spacing: -0.04em; line-height: 0.9; text-align: center; position: absolute; width: 100%; z-index: 1;}
+        .xray-mask-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2; clip-path: circle(120px at var(--x, 50%) var(--y, 50%)); transition: clip-path 0.1s; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+        .xray-mask-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #FFF; letter-spacing: -0.04em; line-height: 0.9; text-align: center; position: absolute; width: 100%; }
+
+        .ribbon-wrap { width: 100%; height: 100%; background: #EFEFEF; display: flex; align-items: center; overflow: hidden; position: relative; cursor: grab;}
+        .ribbon-track { display: flex; gap: 20px; padding: 0 40px; transform: translateX(calc(var(--scroll, 0) * -1%)); transition: transform 0.8s var(--ease); }
+        .ribbon-item { flex: 0 0 280px; height: 380px; border-radius: 12px; background: #CCC; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .ribbon-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .cursor-line-wrap { width: 100%; height: 100%; background: #050505; position: relative; overflow: hidden; cursor: none; display: flex; align-items: center; justify-content: center;}
+        .cursor-line-text { font-size: 24px; color: #333; font-weight: 500; pointer-events: none; }
+        .cursor-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+
+        .rev-wrap { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; position: relative; }
+        .rev-list { list-style: none; padding: 0 10%; position: relative; z-index: 2; }
+        .rev-item { font-size: clamp(32px, 4vw, 56px); font-weight: 500; color: #444; cursor: pointer; transition: color 0.3s; border-bottom: 1px solid #222; padding: 24px 0; line-height: 1; }
+        .rev-item:hover { color: #FFF; }
+        .rev-floater { position: absolute; width: 280px; height: 380px; border-radius: 16px; pointer-events: none; opacity: 0; transform: translate(-50%, -50%) scale(0.8) rotate(-4deg); transition: transform 0.6s var(--ease), opacity 0.4s var(--ease); z-index: 1; overflow: hidden; }
+        .rev-floater.active { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+        .rev-floater img { width: 100%; height: 100%; object-fit: cover; }
+
+        .mag-area { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .mag-btn { background: #FFF; color: #000; padding: 20px 50px; border-radius: 80px; font-family: var(--font-main); font-size: 15px; font-weight: 600; border: none; cursor: pointer; transition: transform 0.4s var(--ease); text-transform: uppercase; }
+        @media (hover: hover) { .mag-area:hover .mag-btn { transition: none; } }
+
+        .scramble-wrap { font-family: monospace; font-size: clamp(24px, 3vw, 36px); font-weight: 500; color: #FFF; cursor: pointer; letter-spacing: 0.05em; }
+
+        .gooey-wrap { filter: url('#gooey-filter'); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
+        .gooey-btn { background: #FFF; color: #000; border: none; padding: 20px 50px; font-family: var(--font-main); font-size: 15px; font-weight: 600; border-radius: 80px; position: relative; z-index: 2; pointer-events: none; }
+        .gooey-blob { position: absolute; width: 60px; height: 60px; background: #FFF; border-radius: 50%; z-index: 1; transition: transform 0.6s var(--ease); pointer-events: none;}
+        .item-preview:hover .gooey-blob:nth-child(2) { transform: translate(-80px, -40px) scale(1.4); }
+        .item-preview:hover .gooey-blob:nth-child(3) { transform: translate(80px, 40px) scale(1.2); }
+
+        .inv-card { width: 340px; padding: 60px 40px; background: #000; border: 1px solid #222; border-radius: 16px; transition: all 0.5s ease; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 340px;}
+        .inv-card p { font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 0.05em; transition: color 0.5s ease; }
+        .inv-card h3 { font-size: 32px; font-weight: 500; color: #FFF; transition: color 0.5s ease; line-height: 1.1; letter-spacing: -0.02em;}
+        .item-preview:hover .inv-card { background: #FFF; border-color: #FFF; }
+        .item-preview:hover .inv-card h3 { color: #000; }
+        .item-preview:hover .inv-card p { color: #888; }
+
+        .acc-wrap { display: flex; gap: 10px; width: 90%; height: 240px; }
+        .acc-item { flex: 1; background: #222; border-radius: 12px; transition: flex 0.6s var(--ease), background 0.6s ease; cursor: pointer; position: relative; overflow: hidden;}
+        .acc-item:nth-child(1) {background: #222;}
+        .acc-item:nth-child(2) {background: #333;}
+        .acc-item:nth-child(3) {background: #444;}
+        .acc-item:hover, .acc-item.active { flex: 3; background: #FFFFFF; }
+
+        .trail-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: crosshair; }
+        .trail-title { font-size: 36px; font-weight: 600; color: #333; pointer-events: none; z-index: 1; }
+        .trail-box { position: absolute; width: 120px; height: 160px; border-radius: 8px; pointer-events: none; transform: translate(-50%, -50%) scale(0.5); opacity: 0; animation: popTrail 1s var(--ease) forwards; z-index: 2; object-fit: cover; }
+        @keyframes popTrail { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(calc(var(--r) * 1deg)); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(calc(var(--r) * 1deg)); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8) rotate(calc(var(--r) * 1deg)); } }
+
+        .tilt-wrap { perspective: 1000px; width: 280px; height: 360px; }
+        .tilt-card { width: 100%; height: 100%; background: #111; border: 1px solid #333; border-radius: 16px; position: relative; transform-style: preserve-3d; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer;}
+        .tilt-card span { font-size: 24px; font-weight: 600; transform: translateZ(60px); pointer-events: none;}
+        .tilt-glare { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 16px; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15), transparent 60%); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+
+        .pixel-wrap { width: 300px; height: 300px; position: relative; background: linear-gradient(135deg, #FF6B6B, #4ECDC4, #FFE66D); border-radius: 12px; overflow: hidden; }
+        .pixel-grid { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); z-index: 2; }
+        .pixel-cell { background: #111; border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); transition: opacity 0.4s ease; cursor: crosshair; }
+        .pixel-cell:hover, .pixel-cell.active { opacity: 0; transition: opacity 0s; }
+
+        .spotlight-wrap { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; padding: 40px; background: #050505; }
+        .spotlight-card { position: relative; width: 320px; height: 320px; background: rgba(255, 255, 255, 0.03); border-radius: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .spotlight-card::before { content: ""; position: absolute; top: var(--y, -1000px); left: var(--x, -1000px); transform: translate(-50%, -50%); width: 450px; height: 450px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+        .spotlight-card:hover::before { opacity: 1; transition: opacity 0.1s ease; }
+        .spotlight-card::after { content: ""; position: absolute; inset: 1px; background: #0a0a0a; border-radius: 19px; z-index: 1; }
+        .spotlight-content { position: relative; z-index: 2; text-align: center; color: #FFF; pointer-events: none; }
+        .spotlight-content h3 { font-size: 24px; font-weight: 500; margin-bottom: 8px; }
+        .spotlight-content p { color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .noise-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; background: #111; display: flex; align-items: center; justify-content: center; }
+        .noise-bg { position: absolute; inset: -50%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E"); animation: noise-anim 0.2s infinite; pointer-events: none; z-index: 1; }
+        .noise-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #FFF; position: relative; z-index: 2; text-align: center; line-height: 0.9; letter-spacing: -0.04em; pointer-events: none;}
+        @keyframes noise-anim { 0% { transform: translate(0,0); } 10% { transform: translate(-5%,-5%); } 20% { transform: translate(-10%,5%); } 30% { transform: translate(5%,-10%); } 40% { transform: translate(-5%,15%); } 50% { transform: translate(-10%,5%); } 60% { transform: translate(15%,0); } 70% { transform: translate(0,10%); } 80% { transform: translate(-15%,0); } 90% { transform: translate(10%,5%); } 100% { transform: translate(5%,0); } }
+
+        .pill-wrap { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; background: #050505; }
+        .pill-nav { --dur: 0.6s; --w: 420px; --bg: #EEEEEE; background: var(--bg); height: 64px; border-radius: 40px; display: flex; align-items: center; padding: 0 24px; width: 140px; overflow: hidden; cursor: pointer; transition: width var(--dur) var(--ease); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .pill-nav:hover { width: var(--w); }
+        .pill-logo { font-size: 20px; font-weight: 800; color: #111; flex-shrink: 0; letter-spacing: -0.02em; }
+        .pill-links { display: flex; gap: 24px; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity calc(var(--dur) - 0.2s) ease; margin-left: auto; padding-right: 12px; }
+        .pill-nav:hover .pill-links { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }
+        .pill-link { color: #111; text-decoration: none; font-size: 15px; font-weight: 600; transition: opacity 0.2s; }
+        .pill-link:hover { opacity: 0.5; }
+        .pill-icon { display: flex; flex-direction: column; gap: 4px; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; }
+        .pill-icon-dot { width: 4px; height: 4px; background: #111; border-radius: 50%; }
+        .pill-nav:hover .pill-icon { opacity: 0; position: absolute; pointer-events: none; }
+
+        .dir-wrap { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: #050505; }
+        .dir-link { font-size: clamp(32px, 4vw, 56px); font-weight: 600; color: #FFF; text-decoration: none; position: relative; display: inline-block; letter-spacing: -0.02em; }
+        .dir-link::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: #FFF; transform: scaleX(0); transform-origin: var(--origin, 50%); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+        .dir-link:hover::after { transform: scaleX(1); }
+
+        .diff-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
+        .diff-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.6s var(--ease); }
+        .diff-wrap:hover .diff-bg-img { transform: scale(1.05); }
+        .diff-text { position: relative; z-index: 2; font-size: clamp(40px, 8vw, 120px); font-weight: 800; color: #FFF; text-align: center; line-height: 0.9; letter-spacing: -0.02em; text-transform: uppercase; mix-blend-mode: difference; pointer-events: none; }
+
+        .cursor-showcase { position: relative; overflow: hidden; cursor: none; background: #050505; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .cursor-showcase * { cursor: none !important; }
+        .cc-dot { position: absolute; top: 0; left: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #C5F03A; border-radius: 50%; pointer-events: none; z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease; transform: translate(var(--x, -100px), var(--y, -100px)) scale(var(--scale, 1)); }
+        .cc-follower { position: absolute; top: 0; left: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 1px solid rgba(197, 240, 58, 0.6); border-radius: 50%; pointer-events: none; z-index: 9; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease; transform: translate(var(--fx, -100px), var(--fy, -100px)) scale(var(--scale, 1)); }
+        .cc-dot.hover { --scale: 0.5; background: #FFF; }
+        .cc-follower.hover { --scale: 0.6; border-color: transparent; background: rgba(255,255,255,0.1); }
+        .cc-dot.click { --scale: 0.3; }
+        .cc-follower.click { --scale: 0.8; background: rgba(255,255,255,0.2); }
+        .cc-btn { background: #111; color: #FFF; border: 1px solid #333; padding: 20px 40px; font-size: 16px; font-family: var(--font-main); font-weight: 600; border-radius: 100px; transition: all 0.3s ease; }
+        .cc-btn:hover { background: #222; border-color: #555; }
+
+        .dcc-root { position: relative; overflow: hidden; width: 100%; height: 100%; color: #ecebe7; user-select: none; -webkit-user-select: none; touch-action: pan-y; outline: none; -webkit-tap-highlight-color: transparent; --dcc-pad: 24px; --dcc-s: clamp(170px, min(50vmin, 38vw), 420px); --dcc-sheen: 0.6; --dcc-spin: 24s; background: radial-gradient(120% 90% at 50% 40%, #1d1d21, #0b0b0d); border-radius: var(--radius); }
+        .dcc-root:focus-visible { box-shadow: inset 0 0 0 2px #171717; }
+        .dcc-root[data-dragging], .dcc-root[data-dragging] .dcc-slide { cursor: grabbing; }
+        .dcc-stage { position: absolute; left: 50%; top: 52%; width: var(--dcc-s); aspect-ratio: 1/1; transform: translate(-50%, -50%); perspective: calc(var(--dcc-s) * 3.2); }
+        .dcc-slide { position: absolute; inset: 0; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; border-radius: 50%; cursor: pointer; will-change: transform; transform-style: preserve-3d; outline: none; }
+        .dcc-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+        .dcc-slide[data-active] .dcc-tilt { transform: translateZ(var(--dcc-lift, 0px)) rotateX(calc(var(--dcc-py, 0) * -12deg)) rotateY(calc(var(--dcc-px, 0) * 12deg)); }
+        .dcc-slide[data-active]:hover { --dcc-lift: calc(var(--dcc-s) * 0.05); }
+        .dcc-shade { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; transform: translate3d(0, 7%, -18px) scale(0.97); background: radial-gradient(circle closest-side, transparent 30%, rgba(0,0,0,0.2) 52%, rgba(0,0,0,0.1) 80%, transparent 100%); }
+        .dcc-edge, .dcc-disc { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(circle closest-side, transparent 16.6%, #000 17.1%); mask: radial-gradient(circle closest-side, transparent 16.6%, #000 17.1%); }
+        .dcc-edge { transform: translateZ(-4px); background: linear-gradient(160deg, #d7d9dc, #8d9196 55%, #c4c7cb); }
+        .dcc-disc { overflow: hidden; background: #cfd2d6; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28), inset 0 0 0 2px rgba(0,0,0,0.08); }
+        .dcc-roll, .dcc-idle { position: absolute; inset: 0; border-radius: 50%; }
+        .dcc-roll { transform: rotate(var(--dcc-roll, 0deg)); }
+        .dcc-root .dcc-idle { animation: dcc-spin var(--dcc-spin) linear infinite; animation-play-state: paused; }
+        .dcc-root .dcc-slide[data-active] .dcc-idle { animation-play-state: running; }
+        .dcc-root[data-dragging] .dcc-slide .dcc-idle { animation-play-state: paused; }
+        @keyframes dcc-spin { to { transform: rotate(1turn); } }
+        .dcc-idle > img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; object-fit: cover; }
+        .dcc-idle > svg, .dcc-hub { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; overflow: visible; }
+        .dcc-hub { pointer-events: none; }
+        .dcc-sheen { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; mix-blend-mode: screen; opacity: var(--dcc-sheen); background: conic-gradient(from calc(var(--dcc-glint, 0deg) + var(--dcc-px, 0) * 70deg), transparent 0deg, rgba(255,255,255,0.5) 16deg, transparent 38deg, transparent 140deg, rgba(150,215,255,0.32) 168deg, rgba(255,170,225,0.32) 186deg, rgba(255,236,170,0.26) 200deg, transparent 224deg, transparent 360deg), radial-gradient(circle at 32% 24%, rgba(255,255,255,0.3), transparent 46%); }
+        .dcc-slide:focus-visible .dcc-disc { box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px #171717; }
+
+        .ascii-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
+        .ascii-canvas { width: 100%; height: 100%; filter: contrast(1.15) brightness(1.12) drop-shadow(0 0 8px rgba(255,255,255,0.25)); object-fit: cover; }
+        .ascii-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 120%); mix-blend-mode: multiply; z-index: 2; }
+
+        .constellation-wrap { position: relative; width: 100%; height: 100%; background: #050505; overflow: hidden; cursor: crosshair; border-radius: var(--radius); }
+        .constellation-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .constellation-content { position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; color: #FFF; pointer-events: none; mix-blend-mode: difference; padding: 20px; }
+        .constellation-content h1 { font-family: monospace; font-size: clamp(40px, 6vw, 100px); font-weight: 900; text-transform: uppercase; line-height: 1; margin: 0; letter-spacing: -0.05em; }
+
+        .morph-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; }
+        .morph-canvas { width: 100%; height: 100%; display: block; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
+        .morph-canvas.ready { opacity: 1; }
+        .morph-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #FFF; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10; transition: background 0.3s; }
+        .morph-btn:hover { background: rgba(255,255,255,0.25); }
+        .morph-btn.left { left: 20px; }
+        .morph-btn.right { right: 20px; }
+        .morph-btn svg { width: 20px; height: 20px; }
+
+        .expandable-tabs-wrap { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; border-radius: var(--radius); }
+        .expandable-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: #111; padding: 8px; border-radius: 20px; border: 1px solid #222; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .ext-tab { position: relative; display: flex; align-items: center; justify-content: center; border-radius: 14px; border: none; background: transparent; color: #7A7A7A; font-family: var(--font-main); font-size: 14px; font-weight: 500; cursor: pointer; overflow: hidden; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); padding: 10px 10px; gap: 0px; }
+        .ext-tab:hover { color: #FFF; background: #222; }
+        .ext-tab.active { color: #111; background: #C5F03A; padding: 10px 18px; gap: 8px; }
+        .ext-tab-title { max-width: 0; opacity: 0; white-space: nowrap; font-weight: 600; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); }
+        .ext-tab.active .ext-tab-title { max-width: 150px; opacity: 1; }
+        .ext-separator { width: 1px; height: 24px; background: #333; margin: 0 4px; }
+        .ext-tab svg { width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* =========================================
+           24. GLASS FOLDER CARDS (ИСПРАВЛЕН БЛЮР)
+           ========================================= */
+        .gf-desk { width: 100%; height: 100%; min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b0b0e; background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.1px, transparent 1.4px); background-size: 22px 22px; position: relative; overflow: hidden; padding: 30px 20px 20px; }
+        .gf-desk-hint { margin-top: 24px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.18em; color: rgba(255, 255, 255, 0.45); text-transform: uppercase; pointer-events: none; }
+        .gf-root { --gf-px: 0; --gf-py: 0; --gf-ease: cubic-bezier(.2, .8, .2, 1); --gf-spring: cubic-bezier(.34, 1.36, .5, 1); --gf-hinge: 0deg; --gf-lift: 42px; --gf-spread: 0px; --gf-fan: 0deg; --gf-stack: 15px; --gf-ink: #141416; --gf-ink-soft: rgba(20, 20, 22, .55); position: relative; display: inline-block; flex: none; vertical-align: top; font-family: var(--font-main); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; isolation: isolate; }
+        .gf-root[data-tone="dark"] { --gf-ink: #f5f5f7; --gf-ink-soft: rgba(245, 245, 247, .58); }
+        .gf-root:hover, .gf-root:focus-within { --gf-hinge: -11deg; --gf-lift: -34px; --gf-spread: 8px; --gf-fan: 1.4deg; --gf-stack: 10px; }
+        .gf-root[data-open] { --gf-hinge: -24deg; --gf-lift: -96px; --gf-spread: 40px; --gf-fan: 5deg; --gf-stack: 30px; }
+        .gf-stage { position: absolute; left: 0; top: 0; width: 340px; height: 272px; transform-origin: 0 0; }
+        .gf-tilt { position: absolute; inset: 0; transform: perspective(1400px) rotateX(calc(var(--gf-py) * -3deg)) rotateY(calc(var(--gf-px) * 4deg)); transition: transform .9s var(--gf-ease); }
+        .gf-shadow { position: absolute; left: 24px; right: 24px; bottom: 0px; height: 48px; border-radius: 40px; background: rgba(0, 0, 0, .55); filter: blur(18px); transform: translateX(calc(var(--gf-px) * -8px)); transition: transform .9s var(--gf-ease), opacity .9s var(--gf-ease); pointer-events: none; z-index: 0; }
+        .gf-back {
+            position: absolute; inset: 0; overflow: hidden; border-radius: 22px;
+            background: linear-gradient(180deg, #f3f3f4 0%, #e3e3e6 100%);
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 272'%3E%3Cpath d='M0 56A22 22 0 0 1 22 34L146 34C170 34 172 0 198 0L318 0A22 22 0 0 1 340 22L340 250A22 22 0 0 1 318 272L22 272A22 22 0 0 1 0 250Z' fill='black'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 272'%3E%3Cpath d='M0 56A22 22 0 0 1 22 34L146 34C170 34 172 0 198 0L318 0A22 22 0 0 1 340 22L340 250A22 22 0 0 1 318 272L22 272A22 22 0 0 1 0 250Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+        }
+        .gf-root[data-tone="dark"] .gf-back { background: linear-gradient(180deg, #2a2a2e 0%, #121214 100%); }
+        .gf-art { position: absolute; left: -12px; top: -12px; max-width: none; object-fit: cover; transform: translate(calc(var(--gf-px) * -7px), calc(var(--gf-py) * -6px)) scale(1.02); transition: transform 1.1s var(--gf-ease), opacity 1.2s var(--gf-ease); }
+        canvas.gf-art { opacity: 0; }
+        canvas.gf-art[data-ready] { opacity: 1; }
+        .gf-back-sheen { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 22%), radial-gradient(120% 80% at 80% 0%, rgba(255, 255, 255, .16), rgba(255, 255, 255, 0) 60%); pointer-events: none; }
+        .gf-rim { position: absolute; left: 0; top: 0; max-width: none; overflow: visible; pointer-events: none; fill: none; }
+        .gf-back-rim { width: 340px; height: 272px; }
+        .gf-back-rim path { stroke: rgba(255, 255, 255, .45); stroke-width: 1; }
+        .gf-files { position: absolute; inset: 0; z-index: 5; pointer-events: none; clip-path: inset(-400px -400px 10px -400px); }
+        .gf-sheet-slot { display: contents; }
+        .gf-sheet { all: unset; box-sizing: border-box; position: absolute; left: 34px; top: 96px; width: 272px; height: 184px; border-radius: 16px; overflow: hidden; cursor: pointer; pointer-events: auto; background: linear-gradient(180deg, #ffffff 0%, #f2f2f0 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 0 0 .5px rgba(0, 0, 0, .1), 0 10px 26px -8px rgba(10, 12, 20, .28); transform-origin: 50% 100%; transform: translate(calc(var(--gf-jx) + var(--gf-slot) * var(--gf-spread)), calc(var(--gf-lift) + var(--gf-depth) * var(--gf-stack) * -1)) rotate(calc(var(--gf-jr) + var(--gf-slot) * var(--gf-fan))); transition: transform .75s var(--gf-spring) calc(var(--gf-depth) * 40ms), box-shadow .4s var(--gf-ease), translate .9s var(--gf-ease), opacity .9s var(--gf-ease); }
+        .gf-sheet--art { background: #1a1a1d; }
+        .gf-root[data-open] .gf-sheet:hover, .gf-root[data-open] .gf-sheet:focus-visible { transform: translate(calc(var(--gf-jx) + var(--gf-slot) * var(--gf-spread)), calc(var(--gf-lift) + var(--gf-depth) * var(--gf-stack) * -1 - 18px)) rotate(calc(var(--gf-slot) * var(--gf-fan) * .6)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 0 0 .5px rgba(0, 0, 0, .1), 0 22px 40px -12px rgba(10, 12, 20, .42); transition-delay: 0s; }
+        .gf-sheet-art { position: absolute; left: 0; top: 0; width: 272px; height: 184px; max-width: none; object-fit: cover; transition: opacity .9s var(--gf-ease); }
+        canvas.gf-sheet-art { opacity: 0; }
+        canvas.gf-sheet-art[data-ready] { opacity: 1; }
+        .gf-sheet--art::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, 0) 34%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); pointer-events: none; }
+        .gf-sheet-head { position: absolute; left: 14px; right: 14px; top: 11px; z-index: 1; display: flex; align-items: baseline; justify-content: space-between; gap: 10px; white-space: nowrap; }
+        .gf-sheet-name { overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; font-weight: 560; letter-spacing: -.005em; color: #18181b; }
+        .gf-sheet-meta { flex: none; font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px; letter-spacing: .02em; color: rgba(24, 24, 27, .5); }
+        .gf-sheet--art .gf-sheet-name { color: #fafafa; }
+        .gf-sheet--art .gf-sheet-meta { color: rgba(250, 250, 250, .66); }
+        .gf-lines { position: absolute; left: 14px; right: 14px; top: 40px; display: flex; flex-direction: column; gap: 9px; }
+        .gf-lines i { display: block; height: 5px; border-radius: 3px; background: rgba(24, 24, 27, .08); }
+        .gf-lines i:first-child { height: 9px; margin-bottom: 4px; background: rgba(24, 24, 27, .14); }
+        .gf-sheet--drop { animation: gf-drop .85s var(--gf-ease) both; }
+        @keyframes gf-drop { 0% { translate: 0 -190px; rotate: -9deg; opacity: 0; } 35% { opacity: 1; } 72% { translate: 0 10px; rotate: 1deg; } 100% { translate: 0 0; rotate: 0deg; opacity: 1; } }
+        .gf-front {
+            position: absolute; left: 0; top: 74px; width: 340px; height: 198px; z-index: 10;
+            border-radius: 22px; overflow: hidden;
+            transform-origin: 50% 100%; transform: perspective(760px) rotateX(var(--gf-hinge));
+            transition: transform .8s var(--gf-spring), translate 1s var(--gf-ease), opacity 1s var(--gf-ease);
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 198'%3E%3Cpath d='M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 176A22 22 0 0 1 318 198L22 198A22 22 0 0 1 0 176Z' fill='black'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 198'%3E%3Cpath d='M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 176A22 22 0 0 1 318 198L22 198A22 22 0 0 1 0 176Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+        }
+        .gf-front--bump { animation: gf-bump .7s var(--gf-ease) .38s both; }
+        @keyframes gf-bump { 0% { scale: 1; } 35% { scale: 1.018 .975; } 70% { scale: .996 1.006; } 100% { scale: 1; } }
+        .gf-tint {
+            position: absolute; inset: 0; border-radius: 22px; overflow: hidden;
+            -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .5) 42%, rgba(252, 252, 252, .93) 100%);
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 198'%3E%3Cpath d='M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 176A22 22 0 0 1 318 198L22 198A22 22 0 0 1 0 176Z' fill='black'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 198'%3E%3Cpath d='M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 176A22 22 0 0 1 318 198L22 198A22 22 0 0 1 0 176Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+        }
+        .gf-spec { position: absolute; inset: 0; background: radial-gradient(260px 200px at calc(50% + var(--gf-px) * 46%) calc(30% + var(--gf-py) * 40%), rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 70%); mix-blend-mode: soft-light; opacity: .9; transition: background-position .6s var(--gf-ease); pointer-events: none; }
+        .gf-front-rim { width: 340px; height: 198px; }
+        .gf-front-rim path { stroke-width: 2.4; transition: stroke-width .3s var(--gf-ease); }
+        .gf-hit { all: unset; position: absolute; inset: 0; z-index: 1; cursor: pointer; }
+        .gf-label { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 4px; max-width: 200px; pointer-events: none; color: var(--gf-ink); }
+        .gf-root[data-place="bottom-left"] .gf-label { left: 28px; bottom: 32px; }
+        .gf-title { font-size: 18px; font-weight: 500; line-height: 1.15; letter-spacing: -.012em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gf-meta { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; letter-spacing: .03em; color: var(--gf-ink-soft); white-space: nowrap; animation: gf-roll .5s var(--gf-ease) both; }
+        @keyframes gf-roll { from { opacity: 0; translate: 0 7px; filter: blur(3px); } to { opacity: 1; translate: 0 0; filter: blur(0); } }
+        .gf-key { all: unset; box-sizing: border-box; position: absolute; right: 22px; bottom: 22px; z-index: 12; width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center; cursor: pointer; transition: transform .35s var(--gf-spring), box-shadow .35s var(--gf-ease), background .35s var(--gf-ease); }
+        .gf-key:hover { transform: translateY(-2px); }
+        .gf-key:active { transform: translateY(0) scale(.93); transition-duration: .12s; }
+        .gf-key--add { color: #fff; background: radial-gradient(120% 90% at 50% 0%, #3a3a3f 0%, #121214 55%, #050506 100%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 -3px 8px rgba(0, 0, 0, .7), 0 0 0 1px rgba(0, 0, 0, .75), 0 14px 22px -8px rgba(0, 0, 0, .55), 0 3px 6px -2px rgba(0, 0, 0, .35); }
+        .gf-glyph { display: block; max-width: none; fill: none; stroke: currentColor; stroke-linecap: round; }
+        .gf-glyph--plus { width: 26px; height: 26px; stroke-width: 1.6; animation: gf-turn .6s var(--gf-spring); }
+        @keyframes gf-turn { from { rotate: -90deg; } to { rotate: 0deg; } }
+
+        /* =========================================
+           25. MACOS DOCK
+           ========================================= */
+        .mac-dock-stage {
+            width: 100%; height: 100%; min-height: 500px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(120% 90% at 50% 35%, #1a1c29 0%, #07080d 100%);
+            position: relative; overflow: hidden; padding: 20px;
+        }
+        .mac-dock-bar {
+            position: relative;
+            background: rgba(45, 45, 45, 0.65);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            user-select: none;
+            transition: border-color 0.3s ease;
+        }
+        .mac-dock-inner {
+            position: relative;
+            width: 100%;
+        }
+        .mac-dock-item {
+            position: absolute;
+            bottom: 0;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            transform-origin: bottom center;
+        }
+        .mac-dock-icon {
+            width: 100%;
+            height: 100%;
+            border-radius: 22%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .mac-dock-icon svg {
+            width: 56%;
+            height: 56%;
+            stroke: #fff;
+            stroke-width: 1.8;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+        }
+        .mac-dock-tooltip {
+            position: absolute;
+            top: -36px;
+            background: rgba(25, 25, 28, 0.88);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(4px);
+            transition: opacity 0.18s ease, transform 0.18s ease;
+        }
+        .mac-dock-item:hover .mac-dock-tooltip {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .mac-dock-dot {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+        }
+
+        /* =========================================
+           26. INTERACTIVE HOVER BUTTON
+           ========================================= */
+        .ihb-stage {
+            width: 100%; height: 100%; min-height: 500px;
+            display: flex; align-items: center; justify-content: center;
+            background: #050505;
+        }
+        .ihb-btn {
+            position: relative;
+            width: 180px;
+            height: 56px;
+            cursor: pointer;
+            overflow: hidden;
+            border-radius: 999px;
+            border: 1px solid #333;
+            background: #111;
+            padding: 12px 24px;
+            text-align: center;
+            font-family: var(--font-main);
+            font-size: 16px;
+            font-weight: 600;
+            color: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s ease;
+        }
+        .ihb-btn:hover {
+            border-color: #C5F03A;
+        }
+        .ihb-text-init {
+            display: inline-block;
+            transform: translateX(6px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
+        }
+        .ihb-btn:hover .ihb-text-init {
+            transform: translateX(52px);
+            opacity: 0;
+        }
+        .ihb-hover-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #000;
+            transform: translateX(48px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ihb-btn:hover .ihb-hover-layer {
+            transform: translateX(-2px);
+            opacity: 1;
+        }
+        .ihb-hover-layer svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .ihb-dot-bg {
+            position: absolute;
+            left: 26px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            margin-top: -4px;
+            border-radius: 999px;
+            background: #C5F03A;
+            transform: scale(1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1;
+        }
+        .ihb-btn:hover .ihb-dot-bg {
+            left: 0;
+            top: 0;
+            margin-top: 0;
+            width: 100%;
+            height: 100%;
+            transform: scale(1.8);
+            background: #C5F03A;
+        }
+
+        /* =========================================
+           27. ASCII DITHER BACKGROUND
+           ========================================= */
+        .ascii-dither-stage {
+            position: relative;
+            width: 100%; height: 100%; min-height: 500px;
+            background: #050505;
+            color: #C5F03A;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ascii-dither-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .ascii-dither-modes {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            display: flex;
+            gap: 8px;
+            background: rgba(17, 17, 17, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 6px;
+            border-radius: 999px;
+            border: 1px solid #2a2a2a;
+        }
+        .ascii-mode-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-family: var(--font-main);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .ascii-mode-btn:hover { color: #FFF; }
+        .ascii-mode-btn.active { background: #C5F03A; color: #000; }
+
+        @media (max-width: 900px) {
+            .list-item { flex-direction: column; gap: 40px; padding: 60px 0; }
+            .item-info { max-width: 100%; width: 100%; }
+            .item-preview { width: 100%; height: 450px; }
+            .hero-title { font-size: 48px; }
+            .search-input { max-width: 100%; }
+            .dcc-root { height: 450px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SVG-ФИЛЬТРЫ -->
+    <svg style="visibility: hidden; position: absolute; width: 0; height: 0;">
+        <filter id="ink-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" result="disp" />
+            <feGaussianBlur in="disp" stdDeviation="0.7" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -7" />
+        </filter>
+        <filter id="gooey-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+        </filter>
+    </svg>
+
+    <!-- ПЛАШКА УВЕДОМЛЕНИЯ -->
+    <div class="toast" id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Код скопирован
+    </div>
+
+    <div class="container">
+        <!-- ОТЦЕНТРИРОВАННЫЙ ЗАГОЛОВОК И ПОИСК -->
+        <header>
+            <h1 class="hero-title ink-bleed">Каталог эффектов</h1>
+            
+            <div class="filters-wrap">
+                <div class="filters" id="filters">
+                    <button class="filter-btn active" data-filter="all">Все эффекты</button>
+                    <button class="filter-btn" data-filter="media">Медиа</button>
+                    <button class="filter-btn" data-filter="interaction">Взаимодействие</button>
+                    <button class="filter-btn" data-filter="typography">Типографика</button>
+                    <button class="filter-btn" data-filter="shapes">Формы</button>
+                </div>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по эффектам...">
+            </div>
+        </header>
+
+        <main class="list-section">
+
+            <!-- 1. X-RAY REVEAL -->
+            <article class="list-item" data-category="typography interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">01. X-Ray Spotlight</h2>
+                    <p>Маска в виде круга следует за курсором и раскрывает скрытый слой. Отличный способ показать структуру элемента или провести пользователя по контенту, словно с фонариком в темноте.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Радиус круга меняется в CSS параметре <code>clip-path: circle(120px)</code>.</li>
+                        <li>Внутрь слоя маски <code>.xray-mask-layer</code> можно встроить любой контент.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('xray', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="xray-wrap" id="fx-xray">
+                        <div class="xray-text">CRAFTSMANSHIP</div>
+                        <div class="xray-mask-layer" id="fx-xray-mask">
+                            <div class="xray-mask-text">CRAFTSMANSHIP</div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 2. RIBBON SLIDER -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">02. Ribbon Slider</h2>
+                    <p>Интерактивная лента изображений, плавно смещающаяся за движением мыши. Отличная альтернатива стандартной карусели.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Чтобы изменить скорость и дальность прокрутки ленты, поменяйте значение в скрипте <code>percent * 150</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('ribbon', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="ribbon-wrap" id="fx-ribbon">
+                        <div class="ribbon-track" id="fx-ribbon-track">
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400&fit=crop" alt="1"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=400&fit=crop" alt="2"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=400&fit=crop" alt="3"></div>
+                            <div class="ribbon-item"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=400&fit=crop" alt="4"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 3. VELOCITY LINE CURSOR -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">03. Velocity Line Cursor</h2>
+                    <p>Эластичная плавная линия-хвост, следующая за движениями курсора.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Чтобы изменить длину хвоста, поменяйте значение переменной <code>maxHistory</code>.</li>
+                        <li>Толщина и цвет линии меняются через <code>lineWidth</code> и <code>strokeStyle</code> в функции отрисовки.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('cursorLine', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="cursor-line-wrap" id="fx-cur-line">
+                        <div class="cursor-line-text">ДВИГАЙ МЫШЬЮ</div>
+                        <canvas class="cursor-canvas" id="c-canvas"></canvas>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 4. HOVER IMAGE REVEAL -->
+            <article class="list-item" data-category="typography media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">04. Hover Image Reveal</h2>
+                    <p>Эффект портфолио. При наведении на пункты списка плавно всплывает фотография и следует за курсором.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Изображения прописываются в HTML у элементов списка через атрибут <code>data-img="ссылка"</code>.</li>
+                        <li>У плашки обязательно должен стоять <code>pointer-events: none</code>, чтобы она не перекрывала пункты списка.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('reveal', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="rev-wrap" id="rev-wrap">
+                        <ul class="rev-list">
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=600&fit=crop">Architecture</li>
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=600&fit=crop">Interiors</li>
+                            <li class="rev-item" data-img="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=600&fit=crop">Objects</li>
+                        </ul>
+                        <div class="rev-floater" id="rev-floater">
+                            <img src="" id="rev-img" alt="">
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 5. MAGNETIC CTA -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">05. Magnetic CTA</h2>
+                    <p>Эффект "намагниченной кнопки". Кнопка плавно притягивается к курсору при движении вокруг неё.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как использовать и настраивать</div>
+                        <li>Множитель <code>0.4</code> в скрипте отвечает за силу притяжения кнопки. Чем больше число, тем сильнее тянется кнопка.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('magnetic', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="mag-area" id="mag-area">
+                        <button class="mag-btn" id="mag-btn">Hover Action</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 6. TEXT SCRAMBLE -->
+            <article class="list-item" data-category="typography">
+                <div class="item-info">
+                    <h2 class="ink-bleed">06. Text Scramble</h2>
+                    <p>Анимация в стиле киберпанк. Текст хаотично перебирает символы перед тем, как окончательно собраться в слово.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>В строке <code>chars</code> можно менять набор символов, которые будут отображаться во время анимации глитча.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('scramble', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="scramble-wrap" id="scramble-text" data-text="NEURO SYSTEM">NEURO SYSTEM</div>
+                </div>
+            </article>
+
+            <!-- 7. LIQUID INTERFACE -->
+            <article class="list-item" data-category="shapes interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">07. Liquid Interface</h2>
+                    <p>Эффект текучести: объекты ведут себя как капли жидкости, слипаясь и растягиваясь друг с другом.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Параметр <code>stdDeviation="10"</code> внутри фильтра задает вязкость элементов. Чем выше значение, тем элементы сильнее тянутся.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('gooey', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="gooey-wrap" id="fx-gooey">
+                        <button class="gooey-btn">LIQUID</button>
+                        <div class="gooey-blob"></div>
+                        <div class="gooey-blob"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 8. INVERT BLOCK -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">08. Invert Block</h2>
+                    <p>Инверсия цвета карточки при наведении. Элегантное решение для подсветки активных блоков.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Цветовая гамма настраивается через состояния фона и текста в селекторе <code>:hover</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('invert', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="inv-card">
+                        <p>Services / 01</p>
+                        <h3>Digital<br>Experience</h3>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 9. FLEX ACCORDION -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">09. Flex Accordion</h2>
+                    <p>Горизонтальный аккордеон. Элементы расширяются при наведении, плавно вытесняя соседей.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Настраивается через пропорции <code>flex: 1</code> в спокойном состоянии и <code>flex: 3</code> при наведении.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('accordion', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="acc-wrap">
+                        <div class="acc-item fx-acc"></div>
+                        <div class="acc-item fx-acc"></div>
+                        <div class="acc-item fx-acc"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 10. MOUSE IMAGE TRAIL -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">10. Mouse Image Trail</h2>
+                    <p>Шлейф из элементов (в данном случае блоков), которые остаются на экране и плавно растворяются, следуя за движениями курсора.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Дистанция появления новых блоков регулируется через проверку гипотенузы в скрипте.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('trail', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="trail-wrap" id="fx-trail">
+                        <h2 class="trail-title">ТЯНИ КУРСОР</h2>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 11. 3D CARD & GLARE -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">11. 3D Card & Glare</h2>
+                    <p>Интерактивная 3D-карточка с динамическим световым бликом. Карточка реагирует на наклон, создавая эффект глубины.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Угол наклона и его резкость настраивается через деление позиции курсора на коэффициент в скрипте (сейчас <code>/ 15</code>).</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('tilt', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="tilt-wrap" id="fx-tilt-wrap">
+                        <div class="tilt-card" id="fx-tilt-card">
+                            <div class="tilt-glare" id="tilt-glare"></div>
+                            <span>PHYSICS</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 12. PIXEL REVEAL MOSAIC -->
+            <article class="list-item" data-category="shapes media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">12. Pixel Mosaic</h2>
+                    <p>Пиксельная сетка-мозаика, ячейки которой постепенно растворяются при наведении курсора, открывая фон.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Количество и размер квадратиков сетки задаются через параметр <code>repeat(10, 1fr)</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('pixel', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="pixel-wrap">
+                        <div class="pixel-grid" id="fx-pixel"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 13. SPOTLIGHT GLOW CARD -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">13. Spotlight Glow</h2>
+                    <p>Карточка с неоновым подсвечиванием. Мягкое свечение внутри карточки следует точно за курсором мыши, красиво очерчивая ее границы.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Цвет подсветки меняется в свойстве радиального градиента.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('spotlight', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="spotlight-wrap">
+                        <div class="spotlight-card" id="spotlight-card">
+                            <div class="spotlight-content">
+                                <h3>Glow Effect</h3>
+                                <p>Наведи на меня</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 14. FILM GRAIN NOISE -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">14. Film Grain Noise</h2>
+                    <p>Эффект пленочного шума (grain). Анимированная рябь добавляет интерфейсу фактуру и кинематографичность.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как настроить</div>
+                        <li>Размер зерна меняется атрибутом <code>baseFrequency="0.85"</code> внутри кода фильтра.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('noise', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="noise-wrap">
+                        <div class="noise-bg"></div>
+                        <h3 class="noise-text">GRAIN<br>TEXTURE</h3>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 15. EXPANDING PILL NAV -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">15. Expanding Pill Nav</h2>
+                    <p>Компактный элемент навигации в форме пилюли. При наведении он плавно расширяется, показывая ссылки меню.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Скорость анимации меняется в переменной <code>--dur</code> в классе <code>.pill-nav</code>.</li>
+                        <li>Максимальная ширина меню при раскрытии задается в <code>--w</code>.</li>
+                        <li>Ссылки можно легко добавлять, дублируя элементы внутри контейнера <code>.pill-links</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('pillnav', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="pill-wrap">
+                        <nav class="pill-nav">
+                            <div class="pill-logo">Logo</div>
+                            <div class="pill-links">
+                                <a href="#" class="pill-link">Work</a>
+                                <a href="#" class="pill-link">Studio</a>
+                                <a href="#" class="pill-link">Contact</a>
+                            </div>
+                            <div class="pill-icon">
+                                <div class="pill-icon-dot"></div>
+                                <div class="pill-icon-dot"></div>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 16. DIRECTIONAL UNDERLINE -->
+            <article class="list-item" data-category="typography interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">16. Directional Underline</h2>
+                    <p>Умное подчеркивание ссылок. Линия появляется именно с той стороны, откуда вы навели курсор на текст.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Толщина и отступ меняются в псевдоэлементе ссылки (свойства height и bottom).</li>
+                        <li>Код вычисляет координаты мыши и подставляет их для создания правильного направления анимации.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('dirUnderline', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="dir-wrap">
+                        <a href="#" class="dir-link">Подчеркивание</a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 17. DIFFERENCE BLEND НА ТЕКСТ -->
+            <article class="list-item" data-category="typography media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">17. Difference Blend</h2>
+                    <p>Типографика с эффектом инверсии. Белый цвет текста динамически инвертирует цвета фоновой фотографии.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Замените фотографию на любую другую.</li>
+                        <li>Обязательно используйте белый цвет текста (<code>color: #FFF</code>), чтобы инверсия сработала максимально эффектно.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('difference', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="diff-wrap">
+                        <img src="IMG_0036.JPG" class="diff-bg-img" alt="bg">
+                        <div class="diff-text">DIFFERENCE</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 18. SMART CUSTOM CURSOR -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">18. Smart Custom Cursor</h2>
+                    <p>Кастомизированный курсор с плавным шлейфом. Он адаптивный: при наведении на интерактивные элементы курсор плавно сжимается, а при клике — пульсирует.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Как кастомизировать</div>
+                        <li>Центральная точка настраивается через один класс, а кольцо-шлейф — через другой (можно менять цвет, толщину и размер).</li>
+                        <li>Степень сжатия при наведении и клике настраивается через специальную переменную <code>--scale</code>.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('customCursor', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="cursor-showcase" id="fx-cc-wrap">
+                        <div class="cc-dot" id="fx-cc-dot"></div>
+                        <div class="cc-follower" id="fx-cc-follower"></div>
+                        <button class="cc-btn" id="fx-cc-btn">Наведи и кликни</button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 19. DISC CASCADE CAROUSEL -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">19. Disc Cascade Carousel</h2>
+                    <p>Стильная 3D-карусель в виде каскада виниловых пластинок. Идеально подойдет для презентации музыкальных альбомов, портфолио или креативной витрины продуктов. Пластинки реалистично отскакивают и перекатываются при перелистывании.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Замена обложек:</b> Можно легко загрузить любые фотографии или обложки, и они органично натянутся на форму диска.</li>
+                        <li><b>Настройка динамики:</b> Упругость отскока, скорость перелистывания и степень вращения пластинок можно настроить под нужный темп.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('discCarousel', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview" style="padding: 0;">
+                    <div id="fx-dcc-wrap" class="dcc-root"></div>
+                </div>
+            </article>
+
+            <!-- 20. VIGNETTE BLOOM ASCII -->
+            <article class="list-item" data-category="media interaction shapes">
+                <div class="item-info">
+                    <h2 class="ink-bleed">20. Vignette Bloom Mosaic</h2>
+                    <p>Завораживающий эффект живой цифровой мозаики. Картинка разбивается на тысячи светящихся частиц, которые пульсируют, создавая иллюзию «дышащего» экрана. Шикарный выбор для бэкграундов в стиле киберпанк или IT-тематики.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Визуальные особенности</div>
+                        <li><b>Анимация волн:</b> Ячейки мозаики плавно увеличиваются и уменьшаются, пуская красивые волны от центра экрана.</li>
+                        <li><b>Кинематографичность:</b> Мягкое неоновое свечение ярких участков (Bloom) и глубокое затемнение по краям (виньетка) придают изображению объем.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('vignetteBloom', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="ascii-wrap" id="fx-ascii">
+                        <canvas class="ascii-canvas" id="fx-ascii-canvas"></canvas>
+                        <div class="ascii-vignette"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 21. CONSTELLATION GRID -->
+            <article class="list-item" data-category="interaction media">
+                <div class="item-info">
+                    <h2 class="ink-bleed">21. Constellation Grid</h2>
+                    <p>Интерактивная звездная сеть, чутко реагирующая на каждое движение. Проведите курсором по экрану, чтобы создать кинетическую волну: точки будут разлетаться и вновь сплетаться тонкими неоновыми нитями. Отличный фоновый эффект для технологичных лендингов.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Брендинг:</b> Крупный текст на фоне можно легко заменить на название вашего проекта или слоган.</li>
+                        <li><b>Цветовая палитра:</b> Оттенки самих частиц, соединительных линий и ярких вспышек при наведении полностью настраиваются под ваш фирменный стиль.</li>
+                        <li><b>Отклик на курсор:</b> Можно сделать так, чтобы частицы разлетались легко, как пушинки, или сопротивлялись, как туго натянутые струны.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('constellation', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="constellation-wrap" id="fx-constellation-wrap">
+                        <canvas class="constellation-canvas" id="fx-constellation-canvas"></canvas>
+                        <div class="constellation-content">
+                            <h1>MAXK.DESIGN</h1>
+                            <p>Интерактивная кинетическая сетка. Проведите курсором, чтобы запустить физику отталкивания и увидеть связи.</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 22. MORPH GALLERY -->
+            <article class="list-item" data-category="media interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">22. Morph Gallery</h2>
+                    <p>Премиальная фотогалерея с невероятно красивым эффектом растворения. При смене кадра старая фотография не просто перелистывается, а эффектно рассыпается и растворяется в новой, словно дым или краска в воде. Идеально для фэшн-сайтов, портфолио фотографов и люксовых брендов.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Характер растворения:</b> Можно настроить размер «разрывов» текстуры, чтобы сделать переход более мягким и дымным, или наоборот — резким и рваным.</li>
+                        <li><b>Скорость и параллакс:</b> Фотографии могут слегка плыть навстречу друг другу во время смены кадра, создавая дополнительное ощущение глубины.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('morphGallery', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="morph-wrap" id="fx-morph">
+                        <canvas class="morph-canvas" id="fx-morph-canvas"></canvas>
+                        <button class="morph-btn left" id="fx-morph-prev">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                        </button>
+                        <button class="morph-btn right" id="fx-morph-next">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 23. EXPANDABLE TABS -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">23. Expandable Tabs</h2>
+                    <p>Элегантная и компактная навигация. В спокойном состоянии вкладки выглядят как аккуратные иконки, экономя место на экране. При клике активная вкладка плавно раскрывается, демонстрируя свое название. Отличный паттерн для мобильных интерфейсов или минималистичных дашбордов.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Фирменные цвета:</b> Оттенок активной вкладки легко перекрашивается в любой цвет вашего бренда.</li>
+                        <li><b>Любые иконки:</b> Вы можете использовать абсолютно любые векторные иконки, они автоматически подстроятся под размер меню.</li>
+                        <li><b>Умное поведение:</b> Меню понимает контекст — клик в пустую область экрана аккуратно свернет все вкладки обратно.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('expandableTabs', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="expandable-tabs-wrap">
+                        <div class="expandable-tabs" id="fx-tabs">
+                            <button class="ext-tab active">
+                                <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <span class="ext-tab-title">Dashboard</span>
+                            </button>
+                            <button class="ext-tab">
+                                <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                                <span class="ext-tab-title">Notifications</span>
+                            </button>
+                            <div class="ext-separator"></div>
+                            <button class="ext-tab">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                <span class="ext-tab-title">Settings</span>
+                            </button>
+                            <button class="ext-tab">
+                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <span class="ext-tab-title">Support</span>
+                            </button>
+                            <button class="ext-tab">
+                                <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <span class="ext-tab-title">Security</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 24. GLASS FOLDER CARDS -->
+            <article class="list-item" data-category="interaction media shapes">
+                <div class="item-info">
+                    <h2 class="ink-bleed">24. Glass Folder Cards</h2>
+                    <p>Тактильная 3D-папка из матового стекла с живыми документами внутри. При наведении стеклянная крышка слегка откидывается на вас, при клике — папка раскрывается, и файлы выезжают веером. Нажатие на «+» закидывает сверху новый документ, от веса которого карман реалистично пружинит. Идеально для файловых менеджеров, дашбордов, кейсов портфолио и медиа-архивов.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Светлое и темное стекло:</b> Легко переключается между молочно-белым и дымчатым темным стеклом под стиль вашего интерфейса.</li>
+                        <li><b>Обложки и вложения:</b> Внутри могут лежать как текстовые документы, так и яркие карточки с арт-обложками или вашими фотографиями.</li>
+                        <li><b>Живое пополнение:</b> Кнопка действия позволяет динамически добавлять новые файлы в стопку с плавным пересчетом счетчика.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('glassFolder', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview" style="padding: 0;">
+                    <div class="gf-desk">
+                        <div id="fx-glass-folder" class="gf-root" data-tone="light" data-entered="true" data-place="bottom-left" style="width: 340px; height: 326px;"></div>
+                        <div class="gf-desk-hint">Hover to lean · Click to open · + to add</div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 25. MACOS DOCK -->
+            <article class="list-item" data-category="interaction">
+                <div class="item-info">
+                    <h2 class="ink-bleed">25. macOS Dock</h2>
+                    <p>Фирменная панель навигации в стиле macOS с плавным волновым увеличением иконок при проведении курсором. Соседние иконки мягко подстраивают свой размер и раздвигаются, а при клике выбранная иконка совершает упругий прыжок и зажигает точку-индикатор. Отлично подходит для креативных портфолио, веб-приложений и необычных шапок сайта.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Любые иконки и разделы:</b> Легко заменить иконки, цвета подложек и подписи под свои разделы сайта или соцсети.</li>
+                        <li><b>Сила увеличения:</b> Параметр <code>maxScale</code> позволяет настроить, насколько сильно вырастает иконка под курсором.</li>
+                        <li><b>Индикаторы активности:</b> Клик по иконке переносит светящуюся точку снизу на выбранный раздел.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('macosDock', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview" style="padding: 0;">
+                    <div class="mac-dock-stage">
+                        <div class="mac-dock-bar" id="fx-mac-dock">
+                            <div class="mac-dock-inner" id="fx-mac-dock-inner"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 26. INTERACTIVE HOVER BUTTON -->
+            <article class="list-item" data-category="interaction typography">
+                <div class="item-info">
+                    <h2 class="ink-bleed">26. Interactive Hover Button</h2>
+                    <p>Динамичная кнопка призыва к действию (CTA). В покое рядом с текстом горит минималистичная точка, которая при наведении мгновенно разрастается и заливает всю кнопку ярким цветом, пока текст синхронно сменяется новым слоем со стрелкой. Идеально для главных экранов лендингов и карточек проектов.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Цветовая точка:</b> Цвет заливки задается в классе <code>.ihb-dot-bg</code> (сейчас установлен фирменный лаймовый <code>#C5F03A</code>).</li>
+                        <li><b>Смена надписи:</b> Начальный и ховер-текст можно сделать как одинаковыми, так и разными (например, «Обсудить» → «Погнали →»).</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('hoverButton', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview">
+                    <div class="ihb-stage">
+                        <button class="ihb-btn" type="button">
+                            <div class="ihb-dot-bg"></div>
+                            <span class="ihb-text-init">Explore</span>
+                            <div class="ihb-hover-layer">
+                                <span>Explore</span>
+                                <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 27. ASCII DITHER BACKGROUND -->
+            <article class="list-item" data-category="media interaction typography">
+                <div class="item-info">
+                    <h2 class="ink-bleed">27. ASCII Dither Background</h2>
+                    <p>Интерактивный цифровой фон из бегущих волн символов, дизеринга или полутоновых точек. Поле непрерывно перетекает по экрану, а в зоне вокруг курсора мыши символы вспыхивают ярче и меняют плотность, оставляя за собой мягкий шлейф. Шикарный фон для техно-брендов, дизайн-студий и промо-страниц.</p>
+                    <ul class="params-list">
+                        <div class="params-title">Возможности кастомизации</div>
+                        <li><b>Три режима отрисовки:</b> Переключайтесь между символами (<code>ASCII</code>), ретро-пикселями (<code>Dither</code>) и точками (<code>Halftone</code>) прямо в превью.</li>
+                        <li><b>Радиус отклика:</b> Параметр <code>cursorRadius</code> регулирует размер светового пятна вокруг мыши.</li>
+                        <li><b>Цвет символов:</b> Задается обычным CSS-свойством <code>color</code> у родительского блока.</li>
+                    </ul>
+                    <button class="copy-btn" onclick="copyCode('asciiDither', this)">Скопировать код</button>
+                </div>
+                <div class="item-preview" style="padding: 0;">
+                    <div class="ascii-dither-stage" id="fx-ascii-dither-stage">
+                        <canvas class="ascii-dither-canvas" id="fx-ascii-dither-canvas"></canvas>
+                        <div class="ascii-dither-modes" id="fx-ascii-dither-modes">
+                            <button type="button" class="ascii-mode-btn active" data-mode="ascii">ASCII</button>
+                            <button type="button" class="ascii-mode-btn" data-mode="dither">Dither</button>
+                            <button type="button" class="ascii-mode-btn" data-mode="dot">Halftone</button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+        </main>
+
+        <footer>
+            Made by maxk.design
+        </footer>
+    </div>
+
+    <script>
+        // СНИППЕТЫ КОДА ДЛЯ КОПИРОВАНИЯ
+        const codeSnippets = {
+            'xray': `/* HTML */\n<div class="xray-wrap" id="xray-wrap">\n  <div class="xray-text">CRAFTSMANSHIP</div>\n  <div class="xray-mask-layer" id="xray-mask">\n    <div class="xray-mask-text">CRAFTSMANSHIP</div>\n  </div>\n</div>\n/* CSS */\n.xray-wrap { background: #C5F03A; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }\n.xray-text { color: #000; position: absolute; z-index: 1; }\n.xray-mask-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2; clip-path: circle(120px at var(--x, 50%) var(--y, 50%)); transition: clip-path 0.1s; pointer-events: none; display: flex; align-items: center; justify-content: center; }\n.xray-mask-text { color: #FFF; position: absolute; }\n/* JS */\nconst xw = document.getElementById('xray-wrap'), xm = document.getElementById('xray-mask');\nxw.addEventListener('mousemove', e => { const r = xw.getBoundingClientRect(); xm.style.setProperty('--x', (e.clientX - r.left)+'px'); xm.style.setProperty('--y', (e.clientY - r.top)+'px'); });`,
+            'ribbon': `/* HTML */\n<div class="ribbon-wrap" id="ribbon-wrap"><div class="ribbon-track" id="ribbon-track">...items...</div></div>\n/* CSS */\n.ribbon-wrap { overflow: hidden; display: flex; align-items: center; }\n.ribbon-track { display: flex; gap: 20px; transform: translateX(calc(var(--scroll, 0) * -1%)); transition: transform 0.8s ease; }\n/* JS */\nconst rw = document.getElementById('ribbon-wrap'), rt = document.getElementById('ribbon-track');\nrw.addEventListener('mousemove', e => { const r = rw.getBoundingClientRect(); const percent = (e.clientX - r.left) / r.width; rt.style.setProperty('--scroll', (percent * 150)); });`,
+            'cursorLine': `/* HTML */\n<div id="wrap"><canvas id="canvas" class="cursor-canvas"></canvas></div>\n/* JS: Canvas smooth elastic trail line */`,
+            'invert': `/* CSS */\n.inv-card { background: #000; color: #FFF; transition: all 0.5s ease; }\n.inv-card:hover { background: #FFF; color: #000; border-color: #FFF; }`,
+            'accordion': `/* CSS */\n.acc-wrap { display: flex; gap: 10px; width: 100%; }\n.acc-item { flex: 1; transition: flex 0.6s ease; }\n.acc-item:hover, .acc-item.active { flex: 3; }`,
+            'trail': `/* JS Logic */\nconst wrap = document.getElementById('trail-wrap');\nconst colors = ['#222', '#444', '#666'];\nlet lastX=0, lastY=0, idx=0;\nfunction spawnBox(x, y) {\n  const r = wrap.getBoundingClientRect();\n  const dx = x - r.left, dy = y - r.top;\n  if(Math.hypot(dx - lastX, dy - lastY) < 40) return;\n  lastX = dx; lastY = dy;\n  const b = document.createElement('div');\n  b.className = 'trail-box';\n  b.style.background = colors[idx++ % colors.length];\n  b.style.left = dx + 'px'; b.style.top = dy + 'px';\n  wrap.appendChild(b);\n  setTimeout(() => b.remove(), 1000);\n}\nwrap.addEventListener('mousemove', e => spawnBox(e.clientX, e.clientY));`,
+            'tilt': `/* JS Logic */\nconst wrap = document.getElementById('tilt-wrap'), card = document.getElementById('tilt-card'), glare = document.getElementById('tilt-glare');\nfunction move(e) {\n  const r = wrap.getBoundingClientRect();\n  const mx = e.clientX - (r.left + r.width / 2), my = e.clientY - (r.top + r.height / 2);\n  card.style.transform = \`rotateX(\${-(my/15)}deg) rotateY(\${mx/15}deg)\`;\n  glare.style.opacity = '1';\n}\nwrap.addEventListener('mousemove', move);\nwrap.addEventListener('mouseleave', () => { card.style.transform = 'rotateX(0deg) rotateY(0deg)'; glare.style.opacity = '0'; });`,
+            'pixel': `/* HTML */\n<div class="pixel-wrap"><div class="pixel-grid" id="grid"></div></div>\n/* JS */\nconst pGrid = document.getElementById('grid');\nfor(let i=0; i<100; i++) {\n  const c = document.createElement('div');\n  c.className = 'pixel-cell';\n  c.addEventListener('mouseenter', () => c.style.opacity = '0');\n  c.addEventListener('mouseleave', () => setTimeout(() => c.style.opacity = '1', 1000));\n  pGrid.appendChild(c);\n}`,
+            'reveal': `/* HTML */\n<div id="rev-wrap"><ul class="rev-list"><li class="rev-item" data-img="1.jpg">Item</li></ul><div id="rev-floater"><img id="rev-img"></div></div>`,
+            'magnetic': `/* JS Logic for magnetic button */`,
+            'scramble': `/* JS Logic for text scramble */`,
+            'spotlight': `/* HTML */\n<div class="spotlight-card">\n  <div class="spotlight-content">Glow</div>\n</div>\n/* CSS */\n.spotlight-card { position: relative; overflow: hidden; background: #111; }\n.spotlight-card::before { content: ""; position: absolute; top: var(--y); left: var(--x); transform: translate(-50%, -50%); width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.3s; }\n.spotlight-card:hover::before { opacity: 1; }\n.spotlight-card::after { content: ""; position: absolute; inset: 1px; background: #0a0a0a; z-index: 1; }\n.spotlight-content { position: relative; z-index: 2; }\n/* JS */\nconst el = document.querySelector('.spotlight-card');\nel.addEventListener('mousemove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--x', (e.clientX - r.left)+'px'); el.style.setProperty('--y', (e.clientY - r.top)+'px'); });`,
+            'noise': `/* HTML */\n<div class="noise-wrap"><div class="noise-bg"></div></div>\n/* CSS */\n.noise-wrap { position: relative; overflow: hidden; background: #111; }\n.noise-bg { position: absolute; inset: -50%; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E"); animation: noise 0.2s infinite; pointer-events: none; z-index: 1; }\n.noise-text { font-size: clamp(40px, 6vw, 80px); font-weight: 800; color: #FFF; position: relative; z-index: 2; text-align: center; line-height: 0.9; letter-spacing: -0.04em; pointer-events: none;}\n@keyframes noise-anim { 0% { transform: translate(0,0); } 10% { transform: translate(-5%,-5%); } 20% { transform: translate(-10%,5%); } 30% { transform: translate(5%,-10%); } 40% { transform: translate(-5%,15%); } 50% { transform: translate(-10%,5%); } 60% { transform: translate(15%,0); } 70% { transform: translate(0,10%); } 80% { transform: translate(-15%,0); } 90% { transform: translate(10%,5%); } 100% { transform: translate(5%,0); } }`,
+            'pillnav': `/* HTML */\n<nav class="pill-nav">\n  <div class="pill-logo">Logo</div>\n  <div class="pill-links">\n    <a href="#" class="pill-link">Work</a>\n    <a href="#" class="pill-link">Studio</a>\n    <a href="#" class="pill-link">Contact</a>\n  </div>\n  <div class="pill-icon"><div class="pill-icon-dot"></div><div class="pill-icon-dot"></div></div>\n</nav>\n/* CSS */\n.pill-nav { --dur: 0.6s; --w: 420px; --bg: #EEEEEE; background: var(--bg); height: 64px; border-radius: 40px; display: flex; align-items: center; padding: 0 24px; width: 140px; overflow: hidden; cursor: pointer; transition: width var(--dur) cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }\n.pill-nav:hover { width: var(--w); }\n.pill-logo { font-size: 20px; font-weight: 800; color: #111; flex-shrink: 0; letter-spacing: -0.02em; }\n.pill-links { display: flex; gap: 24px; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity calc(var(--dur) - 0.2s) ease; margin-left: auto; padding-right: 12px; }\n.pill-nav:hover .pill-links { opacity: 1; pointer-events: auto; transition-delay: 0.15s; }\n.pill-link { color: #111; text-decoration: none; font-size: 15px; font-weight: 600; transition: opacity 0.2s; }\n.pill-link:hover { opacity: 0.5; }\n.pill-icon { display: flex; flex-direction: column; gap: 4px; margin-left: auto; flex-shrink: 0; transition: opacity 0.2s ease; }\n.pill-icon-dot { width: 4px; height: 4px; background: #111; border-radius: 50%; }\n.pill-nav:hover .pill-icon { opacity: 0; position: absolute; pointer-events: none; }`,
+            'dirUnderline': `/* HTML */\n<a href="#" class="dir-link">Подчеркивание</a>\n/* CSS */\n.dir-link { position: relative; text-decoration: none; display: inline-block; color: #FFF; }\n.dir-link::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 100%; height: 2px; background: #FFF; transform: scaleX(0); transform-origin: var(--origin, 50%); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); }\n.dir-link:hover::after { transform: scaleX(1); }\n/* JS */\ndocument.querySelectorAll('.dir-link').forEach(link => {\n  const updateOrigin = (e) => {\n    const rect = link.getBoundingClientRect();\n    const percent = ((e.clientX - rect.left) / rect.width) * 100;\n    link.style.setProperty('--origin', \`\${percent}%\`);\n  };\n  link.addEventListener('mouseenter', updateOrigin);\n  link.addEventListener('mouseleave', updateOrigin);\n});`,
+            'difference': `/* HTML */\n<div class="diff-wrap">\n  <img src="IMG_0036.JPG" class="diff-bg-img" alt="bg">\n  <div class="diff-text">DIFFERENCE</div>\n</div>\n/* CSS */\n.diff-wrap { position: relative; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }\n.diff-bg-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.6s ease; }\n.diff-wrap:hover .diff-bg-img { transform: scale(1.05); }\n.diff-text { position: relative; z-index: 2; font-size: clamp(40px, 8vw, 120px); font-weight: 800; color: #FFF; text-align: center; line-height: 0.9; letter-spacing: -0.02em; text-transform: uppercase; mix-blend-mode: difference; pointer-events: none; }`,
+            'customCursor': `/* HTML */\n<div class="cursor-wrap" id="cursor-wrap">\n  <div class="cc-dot" id="cc-dot"></div>\n  <div class="cc-follower" id="cc-follower"></div>\n  <button class="cc-btn" id="cc-btn">Hover Me</button>\n</div>\n/* CSS */\n.cursor-wrap { position: relative; overflow: hidden; cursor: none; }\n.cursor-wrap * { cursor: none !important; }\n.cc-dot { position: absolute; top: 0; left: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #C5F03A; border-radius: 50%; pointer-events: none; z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease; transform: translate(var(--x, -100px), var(--y, -100px)) scale(var(--scale, 1)); }\n.cc-follower { position: absolute; top: 0; left: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 1px solid rgba(197, 240, 58, 0.6); border-radius: 50%; pointer-events: none; z-index: 9; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background 0.3s ease; transform: translate(var(--fx, -100px), var(--fy, -100px)) scale(var(--scale, 1)); }\n.cc-dot.hover { --scale: 0.5; background: #FFF; }\n.cc-follower.hover { --scale: 0.6; border-color: transparent; background: rgba(255,255,255,0.1); }\n.cc-dot.click { --scale: 0.3; }\n.cc-follower.click { --scale: 0.8; background: rgba(255,255,255,0.2); }\n/* JS */\nconst cw = document.getElementById('cursor-wrap'), cd = document.getElementById('cc-dot'), cf = document.getElementById('cc-follower'), cb = document.getElementById('cc-btn');\nlet mx=0, my=0, dx=0, dy=0, fx=0, fy=0;\ncw.addEventListener('mousemove', e => { const r = cw.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; });\nfunction anim() { dx += (mx - dx) * 0.5; dy += (my - dy) * 0.5; fx += (mx - fx) * 0.15; fy += (my - fy) * 0.15; cd.style.setProperty('--x', \`\${dx}px\`); cd.style.setProperty('--y', \`\${dy}px\`); cf.style.setProperty('--fx', \`\${fx}px\`); cf.style.setProperty('--fy', \`\${fy}px\`); requestAnimationFrame(anim); } anim();\nif(cb) { cb.addEventListener('mouseenter', () => { cd.classList.add('hover'); cf.classList.add('hover'); }); cb.addEventListener('mouseleave', () => { cd.classList.remove('hover'); cf.classList.remove('hover'); cd.classList.remove('click'); cf.classList.remove('click'); }); cb.addEventListener('mousedown', () => { cd.classList.add('click'); cf.classList.add('click'); }); cb.addEventListener('mouseup', () => { cd.classList.remove('click'); cf.classList.remove('click'); }); }`,
+            'discCarousel': `/* В HTML блоке выше код уже подробно прописан. Для использования скачайте весь исходный код страницы. Для кастомизации замените ссылки в dccItems. */`,
+            'vignetteBloom': `/* HTML */\n<div class="ascii-wrap" id="fx-ascii">\n  <canvas class="ascii-canvas" id="fx-ascii-canvas"></canvas>\n  <div class="ascii-vignette"></div>\n</div>\n/* CSS */\n.ascii-wrap { width: 100%; height: 100%; position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }\n.ascii-canvas { width: 100%; height: 100%; filter: contrast(1.15) brightness(1.12) drop-shadow(0 0 8px rgba(255,255,255,0.25)); object-fit: cover; }\n.ascii-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.7) 120%); mix-blend-mode: multiply; z-index: 2; }`,
+            'constellation': `/* HTML */\n<div class="constellation-wrap" id="fx-constellation-wrap">\n    <canvas class="constellation-canvas" id="fx-constellation-canvas"></canvas>\n    <div class="constellation-content">\n        <h1>MAXK.DESIGN</h1>\n    </div>\n</div>\n/* CSS */\n.constellation-wrap { position: relative; width: 100%; height: 100%; background: #050505; overflow: hidden; cursor: crosshair; }\n.constellation-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }\n.constellation-content { position: absolute; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; color: #FFF; pointer-events: none; mix-blend-mode: difference; padding: 20px; }\n.constellation-content h1 { font-family: monospace; font-size: clamp(40px, 6vw, 100px); font-weight: 900; text-transform: uppercase; line-height: 1; margin: 0; letter-spacing: -0.05em; }`,
+            'morphGallery': `/* В HTML блоке выше код прописан. Подробную WebGL-математику смотрите в исходном коде страницы. Для использования просто скопируйте блок WebGL. */`,
+            'expandableTabs': `/* HTML */\n<div class="expandable-tabs" id="fx-tabs">...</div>\n/* CSS & JS смотрите в секции 23 исходного кода страницы */`,
+            'glassFolder': `/* HTML */\n<div id="fx-glass-folder" class="gf-root" data-tone="light" data-entered="true" data-place="bottom-left" style="width: 340px; height: 326px;"></div>\n/* Полная сборка 3D-папки со стеклянными слоями находится в секции 24 исходного кода страницы. */`,
+            'macosDock': `/* HTML */\n<div class="mac-dock-bar" id="fx-mac-dock">\n  <div class="mac-dock-inner" id="fx-mac-dock-inner"></div>\n</div>\n/* CSS & JS */\n// Косинусный алгоритм масштабирования док-панели macOS находится в секции 25 исходного кода страницы.`,
+            'hoverButton': `/* HTML */\n<button class="ihb-btn" type="button">\n  <div class="ihb-dot-bg"></div>\n  <span class="ihb-text-init">Explore</span>\n  <div class="ihb-hover-layer">\n    <span>Explore</span>\n    <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>\n  </div>\n</button>\n/* CSS */\n.ihb-btn { position: relative; width: 180px; height: 56px; cursor: pointer; overflow: hidden; border-radius: 999px; border: 1px solid #333; background: #111; color: #FFF; font-weight: 600; display: flex; align-items: center; justify-content: center; }\n.ihb-text-init { transform: translateX(6px); transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); z-index: 2; }\n.ihb-btn:hover .ihb-text-init { transform: translateX(52px); opacity: 0; }\n.ihb-hover-layer { position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; gap: 8px; color: #000; transform: translateX(48px); opacity: 0; transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); }\n.ihb-btn:hover .ihb-hover-layer { transform: translateX(-2px); opacity: 1; }\n.ihb-dot-bg { position: absolute; left: 26px; top: 50%; width: 8px; height: 8px; margin-top: -4px; border-radius: 999px; background: #C5F03A; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1; }\n.ihb-btn:hover .ihb-dot-bg { left: 0; top: 0; margin-top: 0; width: 100%; height: 100%; transform: scale(1.8); }`,
+            'asciiDither': `/* HTML */\n<div class="ascii-dither-stage">\n  <canvas class="ascii-dither-canvas" id="fx-ascii-dither-canvas"></canvas>\n</div>\n/* CSS & JS */\n// Полный код интерактивного ASCII / Dither фона с реакцией на курсор находится в секции 27 исходного кода страницы.`
+        };
+
+        // ЛОГИКА УВЕДОМЛЕНИЯ ПРИ КОПИРОВАНИИ
+        const toast = document.getElementById('toast');
+        let toastTimeout;
+
+        function copyCode(effectId, btnElement) {
+            const codeToCopy = codeSnippets[effectId];
+            
+            navigator.clipboard.writeText(codeToCopy).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "Скопирован код";
+                btnElement.classList.add('copied-state');
+                toast.classList.add('show');
+                
+                clearTimeout(toastTimeout);
+                toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.classList.remove('copied-state');
+                }, 3000);
+            }).catch(() => alert('Ошибка доступа к буферу обмена.'));
+        }
+
+        // ==========================================
+        // ЛОГИКА ФИЛЬТРАЦИИ И ПОИСКА
+        // ==========================================
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const rows = document.querySelectorAll('.list-item');
+
+        function applyFilters() {
+            const query = searchInput.value.toLowerCase();
+            const activeBtn = document.querySelector('.filter-btn.active');
+            const activeFilter = activeBtn ? activeBtn.getAttribute('data-filter') : 'all';
+
+            rows.forEach(row => {
+                const category = row.getAttribute('data-category') || '';
+                const title = row.querySelector('.item-info h2').innerText.toLowerCase();
+                
+                const matchesFilter = (activeFilter === 'all' || category.includes(activeFilter));
+                const matchesSearch = title.includes(query);
+
+                if (matchesFilter && matchesSearch) {
+                    row.style.display = 'flex';
+                    setTimeout(() => { row.style.opacity = '1'; row.style.transform = 'scale(1)'; }, 10);
+                } else {
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.98)';
+                    setTimeout(() => { row.style.display = 'none'; }, 400);
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyFilters(); 
+            });
+        });
+
+        // ==========================================
+        // ИНИЦИАЛИЗАЦИЯ ЭФФЕКТОВ (1-27)
+        // ==========================================
+
+        // 1. X-RAY REVEAL
+        const xWrap = document.getElementById('fx-xray');
+        const xMask = document.getElementById('fx-xray-mask');
+        if (xWrap && xMask) {
+            function moveXRay(e) {
+                const r = xWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                xMask.style.setProperty('--x', (x - r.left) + 'px');
+                xMask.style.setProperty('--y', (y - r.top) + 'px');
+            }
+            xWrap.addEventListener('mousemove', moveXRay);
+            xWrap.addEventListener('touchmove', moveXRay, {passive: true});
+        }
+
+        // 2. RIBBON SLIDER
+        const ribWrap = document.getElementById('fx-ribbon');
+        const ribTrack = document.getElementById('fx-ribbon-track');
+        if (ribWrap && ribTrack) {
+            function moveRibbon(e) {
+                const r = ribWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const percent = (x - r.left) / r.width;
+                ribTrack.style.setProperty('--scroll', (percent * 150));
+            }
+            ribWrap.addEventListener('mousemove', moveRibbon);
+            ribWrap.addEventListener('touchmove', moveRibbon, {passive: true});
+            ribWrap.addEventListener('mouseleave', () => ribTrack.style.setProperty('--scroll', 0));
+            ribWrap.addEventListener('touchend', () => ribTrack.style.setProperty('--scroll', 0));
+        }
+
+        // 3. VELOCITY LINE CURSOR
+        const cWrap = document.getElementById('fx-cur-line');
+        const canvas = document.getElementById('c-canvas');
+        if (cWrap && canvas) {
+            const ctx = canvas.getContext('2d');
+            let width = cWrap.clientWidth, height = cWrap.clientHeight;
+            canvas.width = width; canvas.height = height;
+
+            window.addEventListener('resize', () => {
+                width = cWrap.clientWidth; height = cWrap.clientHeight;
+                canvas.width = width; canvas.height = height;
+            });
+
+            let mouse = { x: width/2, y: height/2 };
+            let history = [];
+            const maxHistory = 15;
+
+            cWrap.addEventListener('mousemove', e => {
+                const r = cWrap.getBoundingClientRect();
+                mouse.x = e.clientX - r.left;
+                mouse.y = e.clientY - r.top;
+            });
+
+            function render() {
+                ctx.clearRect(0, 0, width, height);
+                history.push({ x: mouse.x, y: mouse.y });
+                if (history.length > maxHistory) history.shift();
+
+                if (history.length > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(history[0].x, history[0].y);
+                    for (let i = 1; i < history.length; i++) {
+                        ctx.lineTo(history[i].x, history[i].y);
+                    }
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2.5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.stroke();
+                }
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        // 5. ACCORDION
+        const accTriggers = document.querySelectorAll('.fx-acc');
+        accTriggers.forEach(acc => {
+            acc.addEventListener('click', () => {
+                accTriggers.forEach(a => a.classList.remove('active'));
+                acc.classList.add('active');
+            });
+        });
+
+        // 6. MOUSE IMAGE TRAIL
+        const trailWrap = document.getElementById('fx-trail');
+        if(trailWrap) {
+            const colors = ['#222222', '#444444', '#666666'];
+            let lastX = 0, lastY = 0, boxIndex = 0;
+            function spawnTrailBox(clientX, clientY) {
+                const rect = trailWrap.getBoundingClientRect();
+                const x = clientX - rect.left; const y = clientY - rect.top;
+                if(Math.hypot(x - lastX, y - lastY) < 40) return;
+                lastX = x; lastY = y;
+                const box = document.createElement('div');
+                box.className = 'trail-box';
+                box.style.background = colors[boxIndex++ % colors.length];
+                box.style.left = x + 'px'; box.style.top = y + 'px';
+                box.style.setProperty('--r', Math.random() * 30 - 15);
+                trailWrap.appendChild(box);
+                setTimeout(() => { box.remove(); }, 1000);
+            }
+            trailWrap.addEventListener('mousemove', (e) => spawnTrailBox(e.clientX, e.clientY));
+            trailWrap.addEventListener('touchmove', (e) => spawnTrailBox(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+        }
+
+        // 7. 3D TILT
+        const tiltWrap = document.getElementById('fx-tilt-wrap');
+        const tiltCard = document.getElementById('fx-tilt-card');
+        const tiltGlare = document.getElementById('tilt-glare');
+        if(tiltWrap) {
+            function handleTiltMove(e) {
+                const rect = tiltWrap.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const mouseX = clientX - (rect.left + rect.width / 2);
+                const mouseY = clientY - (rect.top + rect.height / 2);
+                tiltCard.style.transform = `rotateX(${-(mouseY / 15)}deg) rotateY(${mouseX / 15}deg)`;
+                tiltGlare.style.opacity = '1';
+                const px = ((clientX - rect.left) / rect.width) * 100, py = ((clientY - rect.top) / rect.height) * 100;
+                tiltGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.15), transparent 60%)`;
+            }
+            const resetTilt = () => { tiltCard.style.transform = `rotateX(0deg) rotateY(0deg)`; tiltGlare.style.opacity = '0'; };
+            tiltWrap.addEventListener('mousemove', handleTiltMove); tiltWrap.addEventListener('touchmove', handleTiltMove, {passive: true});
+            tiltWrap.addEventListener('mouseleave', resetTilt); tiltWrap.addEventListener('touchend', resetTilt);
+        }
+
+        // 8. PIXEL REVEAL MOSAIC
+        const pGrid = document.getElementById('fx-pixel');
+        if (pGrid) {
+            for(let i=0; i<100; i++) {
+                const c = document.createElement('div');
+                c.className = 'pixel-cell';
+                c.addEventListener('mouseenter', () => c.style.opacity = '0');
+                c.addEventListener('mouseleave', () => setTimeout(() => c.style.opacity = '1', 1000));
+                c.addEventListener('touchstart', () => c.style.opacity = '0', {passive: true});
+                c.addEventListener('touchend', () => setTimeout(() => c.style.opacity = '1', 1000));
+                pGrid.appendChild(c);
+            }
+        }
+
+        // Hover Image Reveal JS
+        const rWrap = document.getElementById('rev-wrap');
+        const rFloater = document.getElementById('rev-floater');
+        const rImg = document.getElementById('rev-img');
+        if (rWrap && rFloater) {
+            function moveReveal(e) {
+                const r = rWrap.getBoundingClientRect();
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                rFloater.style.left = (x - r.left) + 'px';
+                rFloater.style.top = (y - r.top) + 'px';
+            }
+            rWrap.addEventListener('mousemove', moveReveal);
+            rWrap.addEventListener('touchmove', moveReveal, {passive: true});
+
+            document.querySelectorAll('.rev-item').forEach(item => {
+                const triggerIn = () => { rImg.src = item.dataset.img; rFloater.classList.add('active'); };
+                const triggerOut = () => rFloater.classList.remove('active');
+                item.addEventListener('mouseenter', triggerIn);
+                item.addEventListener('mouseleave', triggerOut);
+            });
+        }
+
+        // Magnetic CTA JS
+        const mArea = document.getElementById('mag-area');
+        const mBtn = document.getElementById('mag-btn');
+        if (mArea) {
+            mArea.addEventListener('mousemove', e => {
+                const r = mArea.getBoundingClientRect();
+                const x = e.clientX - r.left - r.width / 2;
+                const y = e.clientY - r.top - r.height / 2;
+                mBtn.style.transform = `translate(${x * 0.4}px, ${y * 0.4}px)`;
+            });
+            mArea.addEventListener('mouseleave', () => mBtn.style.transform = 'translate(0,0)');
+        }
+
+        // Text Scramble JS
+        const sEl = document.getElementById('scramble-text');
+        if (sEl) {
+            const chars = '!<>-_\\/[]{}—=+*^?#_';
+            function runScramble() {
+                const orig = sEl.dataset.text; let i = 0;
+                const int = setInterval(() => {
+                    sEl.innerText = orig.split('').map((l, idx) => idx < i ? orig[idx] : chars[Math.floor(Math.random() * chars.length)]).join('');
+                    if(i >= orig.length) clearInterval(int); i += 1/3;
+                }, 30);
+            }
+            sEl.addEventListener('mouseenter', runScramble);
+        }
+
+        // 13. SPOTLIGHT GLOW JS
+        const spotCard = document.getElementById('spotlight-card');
+        if(spotCard) {
+            spotCard.addEventListener('mousemove', (e) => {
+                const rect = spotCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                spotCard.style.setProperty('--x', `${x}px`);
+                spotCard.style.setProperty('--y', `${y}px`);
+            });
+        }
+
+        // 16. DIRECTIONAL UNDERLINE JS
+        const dirLinks = document.querySelectorAll('.dir-link');
+        dirLinks.forEach(link => {
+            const updateOrigin = (e) => {
+                const rect = link.getBoundingClientRect();
+                const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                link.style.setProperty('--origin', `${percent}%`);
+            };
+            link.addEventListener('mouseenter', updateOrigin);
+            link.addEventListener('mouseleave', updateOrigin);
+        });
+
+        // 18. SMART CUSTOM CURSOR JS
+        const ccWrap = document.getElementById('fx-cc-wrap');
+        const ccDot = document.getElementById('fx-cc-dot');
+        const ccFol = document.getElementById('fx-cc-follower');
+        const ccBtn = document.getElementById('fx-cc-btn');
+
+        if (ccWrap && ccDot && ccFol) {
+            let mX = 0, mY = 0;       
+            let dotX = 0, dotY = 0;   
+            let folX = 0, folY = 0;   
+            let isCcHovering = false;
+
+            ccWrap.addEventListener('mousemove', e => {
+                const r = ccWrap.getBoundingClientRect();
+                mX = e.clientX - r.left;
+                mY = e.clientY - r.top;
+                
+                if(!isCcHovering) {
+                    dotX = folX = mX; 
+                    dotY = folY = mY;
+                    isCcHovering = true;
+                    ccDot.style.opacity = 1;
+                    ccFol.style.opacity = 1;
+                }
+            });
+            
+            ccWrap.addEventListener('mouseleave', () => {
+                isCcHovering = false;
+                ccDot.style.opacity = 0;
+                ccFol.style.opacity = 0;
+            });
+            
+            ccDot.style.opacity = 0;
+            ccFol.style.opacity = 0;
+
+            function animateCustomCursor() {
+                if (isCcHovering) {
+                    dotX += (mX - dotX) * 0.5;
+                    dotY += (mY - dotY) * 0.5;
+                    folX += (mX - folX) * 0.15;
+                    folY += (mY - folY) * 0.15;
+                    
+                    ccDot.style.setProperty('--x', `${dotX}px`);
+                    ccDot.style.setProperty('--y', `${dotY}px`);
+                    ccFol.style.setProperty('--fx', `${folX}px`);
+                    ccFol.style.setProperty('--fy', `${folY}px`);
+                }
+                requestAnimationFrame(animateCustomCursor);
+            }
+            animateCustomCursor();
+
+            if(ccBtn) {
+                ccBtn.addEventListener('mouseenter', () => {
+                    ccDot.classList.add('hover');
+                    ccFol.classList.add('hover');
+                });
+                ccBtn.addEventListener('mouseleave', () => {
+                    ccDot.classList.remove('hover');
+                    ccFol.classList.remove('hover');
+                    ccDot.classList.remove('click');
+                    ccFol.classList.remove('click');
+                });
+                ccBtn.addEventListener('mousedown', () => {
+                    ccDot.classList.add('click');
+                    ccFol.classList.add('click');
+                });
+                ccBtn.addEventListener('mouseup', () => {
+                    ccDot.classList.remove('click');
+                    ccFol.classList.remove('click');
+                });
+            }
+        }
+
+        // 19. DISC CASCADE CAROUSEL JS
+        const dccWrap = document.getElementById('fx-dcc-wrap');
+        if (dccWrap) {
+            const dccItems = [
+                { src: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=600&fit=crop" },
+                { src: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=600&fit=crop" },
+                { src: "https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=600&fit=crop" },
+                { src: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=600&fit=crop" },
+                { src: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&fit=crop" }
+            ];
+
+            let slidesHTML = dccItems.map((item, i) => `
+                <button type="button" class="dcc-slide" tabindex="-1">
+                    <span class="dcc-tilt">
+                        <span class="dcc-shade"></span>
+                        <span class="dcc-edge"></span>
+                        <span class="dcc-disc">
+                            <span class="dcc-roll">
+                                <span class="dcc-idle">
+                                    <img src="${item.src}" draggable="false" loading="lazy" width="600" height="600" style="max-width:none">
+                                    <svg class="dcc-hub" viewBox="0 0 200 200" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="metal-${i}" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0" stop-color="#fbfbfc" />
+                                                <stop offset=".45" stop-color="#a9adb3" />
+                                                <stop offset=".55" stop-color="#eef0f2" />
+                                                <stop offset="1" stop-color="#8f949a" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle cx="100" cy="100" r="35.5" fill="none" stroke="url(#metal-${i})" stroke-width="4" />
+                                        <circle cx="100" cy="100" r="25.5" fill="rgba(232,235,239,.82)" stroke="rgba(232,235,239,.82)" stroke-width="16" />
+                                        <circle cx="100" cy="100" r="17.6" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.4" />
+                                        <circle cx="100" cy="100" r="22" fill="none" stroke="rgba(0,0,0,.12)" stroke-width=".6" />
+                                        <circle cx="100" cy="100" r="27" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.6" />
+                                        <circle cx="100" cy="100" r="28.6" fill="none" stroke="rgba(0,0,0,.1)" stroke-width=".6" />
+                                        <circle cx="100" cy="100" r="33.3" fill="none" stroke="rgba(0,0,0,.16)" stroke-width=".7" />
+                                        <circle cx="100" cy="100" r="99.3" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.2" />
+                                    </svg>
+                                </span>
+                            </span>
+                        </span>
+                        <span class="dcc-sheen"></span>
+                    </span>
+                </button>
+            `).join('');
+
+            dccWrap.innerHTML = `<div class="dcc-stage">${slidesHTML}</div>`;
+            const slides = dccWrap.querySelectorAll('.dcc-slide');
+            
+            const c = { n: dccItems.length, loop: true, spacing: 1.02, rise: 0.24, depth: 0.42, yaw: 22, fan: -10, tilt: -6, roll: 110, bounce: 0.22, duration: 0.9 };
+            const E = { a: 1, va: 0, b: 1, vb: 0, target: 1, raf: 0, last: 0, size: 300, drag: null };
+            
+            function wrapIndex(i, n) { return n <= 0 ? 0 : ((i % n) + n) % n; }
+            function indexAt(pos, n, loop) { return loop ? wrapIndex(Math.round(pos), n) : Math.min(Math.max(Math.round(pos), 0), n - 1); }
+            function offsetOf(i, pos, n, loop) { const d = i - pos; return loop && n > 0 ? d - n * Math.round(d / n) : d; }
+            function rubber(pos, n) { if (pos < 0) return pos / 3; if (pos > n - 1) return n - 1 + (pos - (n - 1)) / 3; return pos; }
+            function springOf(bounce, duration) { const b = Math.min(Math.max(bounce, 0), 0.9); return { omega: (2 * Math.PI) / Math.max(duration, 0.1), slide: 1 - b / 2, tilt: 1 - b }; }
+            function springStep(x, v, target, omega, zeta, dt) {
+                const steps = Math.max(1, Math.ceil(dt / (1 / 240)));
+                const h = dt / steps;
+                for (let k = 0; k < steps; k++) {
+                    v += (-omega * omega * (x - target) - 2 * zeta * omega * v) * h;
+                    x += v * h;
+                }
+                return [x, v];
+            }
+            function releaseTarget(pos, velocity, n, loop) {
+                const here = Math.round(pos);
+                let t = Math.round(pos + velocity * 0.2);
+                t = Math.min(Math.max(t, here - 3), here + 3);
+                return loop ? t : Math.min(Math.max(t, 0), n - 1);
+            }
+            function poseOf(dx, d, c) {
+                const near = Math.min(d, 2.2);
+                return {
+                    x: dx * c.spacing,
+                    y: -dx * c.rise,
+                    z: near * c.depth,
+                    yaw: c.yaw + d * c.fan,
+                    roll: d * c.roll,
+                    zIndex: 100 + Math.round(d * 10),
+                    opacity: d < -2.5 ? Math.max(0, 1 - (-d - 2.5) / 1.2) : 1,
+                    hidden: dx < -4 || dx > 2.8,
+                };
+            }
+            
+            function paint() {
+                const activeIndex = indexAt(E.a, c.n, c.loop);
+                slides.forEach((el, i) => {
+                    const p = poseOf(offsetOf(i, E.a, c.n, c.loop), offsetOf(i, E.b, c.n, c.loop), c);
+                    el.style.transform = `translate3d(calc(${p.x.toFixed(4)} * var(--dcc-s)), calc(${p.y.toFixed(4)} * var(--dcc-s)), calc(${p.z.toFixed(4)} * var(--dcc-s))) rotateZ(${c.tilt}deg) rotateY(${p.yaw.toFixed(3)}deg) rotateX(8deg)`;
+                    el.style.zIndex = p.zIndex;
+                    el.style.opacity = p.opacity < 1 ? p.opacity.toFixed(3) : '';
+                    el.style.visibility = p.hidden ? 'hidden' : '';
+                    el.style.setProperty('--dcc-roll', p.roll.toFixed(2) + 'deg');
+                    el.style.setProperty('--dcc-glint', (p.yaw * 3 + p.x * 40).toFixed(1) + 'deg');
+                    
+                    if (i === activeIndex) { el.setAttribute('data-active', ''); el.tabIndex = 0; } 
+                    else { el.removeAttribute('data-active'); el.tabIndex = -1; }
+                });
+            }
+            
+            function frame(now) {
+                const dt = Math.min((now - (E.last || now)) / 1000, 1 / 20);
+                E.last = now;
+                const s = springOf(c.bounce, c.duration);
+                if (!E.drag) {
+                    const resA = springStep(E.a, E.va, E.target, s.omega, s.slide, dt);
+                    E.a = resA[0]; E.va = resA[1];
+                }
+                const resB = springStep(E.b, E.vb, E.a, s.omega * 1.05, s.tilt, dt);
+                E.b = resB[0]; E.vb = resB[1];
+                paint();
+                
+                const settled = !E.drag && Math.abs(E.a - E.target) < 1e-3 && Math.abs(E.va) < 1e-2 && Math.abs(E.b - E.a) < 1e-3 && Math.abs(E.vb) < 1e-2;
+                if (settled) {
+                    E.a = E.b = E.target; E.va = E.vb = 0; paint();
+                    E.raf = 0; E.last = 0; return;
+                }
+                E.raf = requestAnimationFrame(frame);
+            }
+            
+            function kick() { if (!E.raf) E.raf = requestAnimationFrame(frame); }
+            function setTarget(t) { E.target = c.loop ? t : Math.min(Math.max(t, 0), c.n - 1); kick(); }
+            
+            dccWrap.addEventListener('pointerdown', e => {
+                if (e.button !== 0) return;
+                E.drag = { id: e.pointerId, x0: e.clientX, pos0: E.a, moved: false, samples: [{t: e.timeStamp, x: e.clientX}] };
+            });
+
+            dccWrap.addEventListener('pointermove', e => {
+                if (e.pointerType === 'mouse' && (!E.drag || !E.drag.moved)) {
+                    const r = dccWrap.getBoundingClientRect();
+                    const cx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width/2)) / r.width));
+                    const cy = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height/2)) / r.height));
+                    dccWrap.style.setProperty('--dcc-px', cx.toFixed(3));
+                    dccWrap.style.setProperty('--dcc-py', cy.toFixed(3));
+                }
+                if (!E.drag || E.drag.id !== e.pointerId) return;
+                const dx = e.clientX - E.drag.x0;
+                if (!E.drag.moved) {
+                    if (Math.abs(dx) < 6) return;
+                    E.drag.moved = true;
+                    E.drag.x0 = e.clientX;
+                    E.drag.pos0 = E.a;
+                    E.va = 0;
+                    dccWrap.setPointerCapture(e.pointerId);
+                    dccWrap.setAttribute('data-dragging', '');
+                }
+                E.size = dccWrap.offsetWidth || 300;
+                const raw = E.drag.pos0 - (e.clientX - E.drag.x0) / (E.size * c.spacing);
+                E.a = c.loop ? raw : rubber(raw, c.n);
+                E.drag.samples.push({t: e.timeStamp, x: e.clientX});
+                if (E.drag.samples.length > 6) E.drag.samples.shift();
+                kick();
+            });
+
+            dccWrap.addEventListener('pointerup', e => {
+                if (!E.drag || E.drag.id !== e.pointerId) return;
+                const moved = E.drag.moved;
+                const samples = E.drag.samples;
+                E.drag = null;
+                dccWrap.removeAttribute('data-dragging');
+                if (!moved) return;
+                const first = samples[0], last = samples[samples.length - 1];
+                const ms = Math.max(last.t - first.t, 1);
+                const v = (-(last.x - first.x) / ms / (E.size * c.spacing)) * 1000;
+                E.va = v;
+                setTarget(releaseTarget(E.a, v, c.n, c.loop));
+            });
+
+            dccWrap.addEventListener('pointerleave', () => {
+                dccWrap.style.setProperty('--dcc-px', '0');
+                dccWrap.style.setProperty('--dcc-py', '0');
+            });
+            
+            kick();
+        }
+
+        // 20. VIGNETTE BLOOM ASCII JS
+        const asciiWrap = document.getElementById('fx-ascii');
+        const asciiCanvas = document.getElementById('fx-ascii-canvas');
+
+        if (asciiWrap && asciiCanvas) {
+            const ctx = asciiCanvas.getContext('2d', { willReadFrequently: true });
+            
+            let offCanvas = document.createElement('canvas');
+            let offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+            let w, h;
+            const cellSize = 16; 
+            
+            function initAscii() {
+                w = asciiWrap.clientWidth;
+                h = asciiWrap.clientHeight;
+                asciiCanvas.width = w;
+                asciiCanvas.height = h;
+                offCanvas.width = w;
+                offCanvas.height = h;
+            }
+
+            initAscii();
+            window.addEventListener('resize', initAscii);
+
+            function renderAscii(time) {
+                offCtx.fillStyle = '#000';
+                offCtx.fillRect(0, 0, w, h);
+                const t = time * 0.001; 
+                
+                offCtx.fillStyle = '#C5F03A'; 
+                offCtx.beginPath();
+                offCtx.arc(w/2 + Math.sin(t)*120, h/2 + Math.cos(t*1.3)*80, 150, 0, Math.PI*2);
+                offCtx.fill();
+                
+                offCtx.fillStyle = '#FF3366'; 
+                offCtx.beginPath();
+                offCtx.arc(w/2 + Math.cos(t*0.8)*140, h/2 + Math.sin(t*1.1)*100, 120, 0, Math.PI*2);
+                offCtx.fill();
+
+                const imgData = offCtx.getImageData(0, 0, w, h).data;
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, w, h);
+                
+                for (let y = 0; y < h; y += cellSize) {
+                    for (let x = 0; x < w; x += cellSize) {
+                        const px = Math.floor(x + cellSize/2);
+                        const py = Math.floor(y + cellSize/2);
+                        if(px >= w || py >= h) continue;
+                        
+                        const i = (py * w + px) * 4;
+                        const r = imgData[i];
+                        const g = imgData[i+1];
+                        const b = imgData[i+2];
+                        if (r === 0 && g === 0 && b === 0) continue; 
+                        
+                        const dist = Math.sqrt((x - w/2)**2 + (y - h/2)**2);
+                        const wave = Math.sin(dist * 0.02 - t*3) * 0.5 + 0.5; 
+                        const scale = 1 - (0.6 * (1 - wave)); 
+                        const size = cellSize * scale;
+                        
+                        ctx.fillStyle = `rgb(${r},${g},${b})`;
+                        const offset = (cellSize - size) / 2;
+                        ctx.fillRect(x + offset, y + offset, size, size);
+                    }
+                }
+                requestAnimationFrame(renderAscii);
+            }
+            requestAnimationFrame(renderAscii);
+        }
+
+        // 21. CONSTELLATION GRID JS
+        const constelWrap = document.getElementById('fx-constellation-wrap');
+        const constelCanvas = document.getElementById('fx-constellation-canvas');
+        
+        if (constelWrap && constelCanvas) {
+            const ctx = constelCanvas.getContext('2d', { alpha: false });
+            let width, height;
+            let nodes = [];
+            
+            const mouse = { x: -1000, y: -1000, prevX: -1000, prevY: -1000, vx: 0, vy: 0, radius: 220 };
+            
+            const bgColor = '#030407';
+            const nodeColor = '255, 255, 255';
+            const accentColor = '197, 240, 58'; 
+
+            function handleResize() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                width = constelWrap.clientWidth;
+                height = constelWrap.clientHeight;
+                constelCanvas.width = width * dpr;
+                constelCanvas.height = height * dpr;
+                ctx.scale(dpr, dpr);
+                initNodes();
+            }
+
+            function initNodes() {
+                nodes = [];
+                const spacing = 55;
+                const cols = Math.ceil(width / spacing) + 1;
+                const rows = Math.ceil(height / spacing) + 1;
+
+                for (let i = 0; i < cols; i++) {
+                    for (let j = 0; j < rows; j++) {
+                        const x = i * spacing;
+                        const y = j * spacing;
+                        nodes.push({
+                            x, y, vx: 0, vy: 0, baseX: x, baseY: y,
+                            radius: Math.random() * 1.2 + 1.2,
+                            label: `${(i * 7).toString(16).toUpperCase()}:${(j * 11).toString(16).toUpperCase()}`,
+                            pulse: Math.random() * Math.PI * 2
+                        });
+                    }
+                }
+            }
+
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            
+            constelWrap.addEventListener('mousemove', (e) => {
+                const r = constelWrap.getBoundingClientRect();
+                mouse.x = e.clientX - r.left;
+                mouse.y = e.clientY - r.top;
+            });
+            constelWrap.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+
+            let lastTime = performance.now();
+
+            function renderConstellation(now) {
+                const dt = Math.min((now - lastTime) / 1000, 0.05);
+                lastTime = now;
+
+                mouse.vx = (mouse.x - mouse.prevX) / (dt * 1000 || 1);
+                mouse.vy = (mouse.y - mouse.prevY) / (dt * 1000 || 1);
+                mouse.prevX = mouse.x; mouse.prevY = mouse.y;
+
+                const speed = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy);
+
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, width, height);
+
+                const SPRING_K = 18; 
+                const DAMPING = 0.82; 
+
+                for (let i = 0; i < nodes.length; i++) {
+                    const n = nodes[i];
+                    n.pulse += dt * 3;
+
+                    const dx = mouse.x - n.x;
+                    const dy = mouse.y - n.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < mouse.radius && dist > 0) {
+                        const power = (1 - dist / mouse.radius);
+                        const force = power * (1500 + speed * 150);
+                        const angle = Math.atan2(dy, dx);
+                        n.vx -= Math.cos(angle) * force * dt;
+                        n.vy -= Math.sin(angle) * force * dt;
+                    }
+
+                    const homeDx = n.baseX - n.x;
+                    const homeDy = n.baseY - n.y;
+                    n.vx += homeDx * SPRING_K * dt;
+                    n.vy += homeDy * SPRING_K * dt;
+                    n.vx *= DAMPING; n.vy *= DAMPING;
+                    n.x += n.vx * dt * 60; n.y += n.vy * dt * 60;
+                }
+
+                const MAX_CONN_DIST = 75;
+                const MAX_CONN_DIST_SQ = MAX_CONN_DIST * MAX_CONN_DIST;
+
+                for (let i = 0; i < nodes.length; i++) {
+                    const n = nodes[i];
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const n2 = nodes[j];
+                        const ndx = n.x - n2.x;
+                        const ndy = n.y - n2.y;
+                        const distSq = ndx * ndx + ndy * ndy;
+
+                        if (distSq < MAX_CONN_DIST_SQ) {
+                            const nDist = Math.sqrt(distSq);
+                            const alpha = (1 - nDist / MAX_CONN_DIST) * 0.18;
+                            ctx.strokeStyle = `rgba(${nodeColor}, ${alpha})`;
+                            ctx.lineWidth = 0.7;
+                            ctx.beginPath();
+                            ctx.moveTo(n.x, n.y);
+                            ctx.lineTo(n2.x, n2.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                for (let i = 0; i < nodes.length; i++) {
+                    const n = nodes[i];
+                    const dx = mouse.x - n.x;
+                    const dy = mouse.y - n.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const isNear = dist < mouse.radius;
+
+                    const baseAlpha = isNear ? 0.95 : 0.25 + Math.sin(n.pulse) * 0.1;
+                    ctx.fillStyle = isNear ? `rgba(${accentColor}, ${baseAlpha})` : `rgba(${nodeColor}, ${baseAlpha})`;
+
+                    const currentRadius = isNear ? n.radius * 2.2 : n.radius + Math.sin(n.pulse) * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
+                    ctx.fill();
+
+                    if (dist < 90) {
+                        const pulseRing = ((n.pulse * 20) % 30) + 4;
+                        const ringAlpha = (1 - pulseRing / 34) * 0.4;
+                        ctx.strokeStyle = `rgba(${accentColor}, ${ringAlpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, pulseRing, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        ctx.font = '8px monospace';
+                        ctx.fillStyle = `rgba(${accentColor}, 0.85)`;
+                        ctx.fillText(n.label, n.x + 10, n.y - 10);
+                    }
+                }
+                requestAnimationFrame(renderConstellation);
+            }
+            requestAnimationFrame(renderConstellation);
+        }
+
+        // 22. MORPH GALLERY JS
+        {
+            const wrap = document.getElementById('fx-morph');
+            const canvas = document.getElementById('fx-morph-canvas');
+            const btnPrev = document.getElementById('fx-morph-prev');
+            const btnNext = document.getElementById('fx-morph-next');
+
+            if (wrap && canvas && btnPrev && btnNext) {
+                const morphImages = [
+                    "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=800&fit=crop",
+                    "https://images.unsplash.com/photo-1557672172-298e090bd0f1?q=80&w=800&fit=crop",
+                    "https://images.unsplash.com/photo-1604871000636-074fa5117945?q=80&w=800&fit=crop"
+                ];
+
+                const gl = canvas.getContext("webgl", { alpha: false, antialias: false }) || canvas.getContext("experimental-webgl");
+                
+                if (gl) {
+                    const VERT = `
+                    attribute vec2 a_position;
+                    varying vec2 v_uv;
+                    void main() {
+                        v_uv = a_position * 0.5 + 0.5;
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                    }`;
+
+                    const FRAG = `
+                    precision highp float;
+                    uniform sampler2D u_from;
+                    uniform sampler2D u_to;
+                    uniform float u_progress;
+                    uniform vec2 u_resolution;
+                    uniform float u_fromAspect;
+                    uniform float u_toAspect;
+                    uniform float u_scale;
+                    uniform float u_direction;
+                    uniform float u_edge;
+                    uniform float u_drift;
+                    varying vec2 v_uv;
+
+                    vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+                    float snoise(vec2 v) {
+                        const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                        vec2 i  = floor(v + dot(v, C.yy));
+                        vec2 x0 = v - i + dot(i, C.xx);
+                        vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                        vec4 x12 = x0.xyxy + C.xxzz;
+                        x12.xy -= i1;
+                        i = mod(i, 289.0);
+                        vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+                        vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+                        m = m * m; m = m * m;
+                        vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                        vec3 h = abs(x) - 0.5;
+                        vec3 ox = floor(x + 0.5);
+                        vec3 a0 = x - ox;
+                        m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+                        vec3 g;
+                        g.x  = a0.x  * x0.x  + h.x  * x0.y;
+                        g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                        return 130.0 * dot(m, g);
+                    }
+
+                    float fbm(vec2 v) {
+                        float value = 0.0; float amplitude = 0.5;
+                        for (int i = 0; i < 5; i++) {
+                            value += amplitude * snoise(v); v *= 2.0; amplitude *= 0.5;
+                        }
+                        return value;
+                    }
+
+                    vec2 mirror(vec2 uv) { return 1.0 - abs(1.0 - mod(uv, 2.0)); }
+
+                    vec2 coverUV(vec2 uv, float imgAspect) {
+                        float canvasAspect = u_resolution.x / u_resolution.y;
+                        vec2 scale = (canvasAspect > imgAspect) ? vec2(1.0, imgAspect / canvasAspect) : vec2(canvasAspect / imgAspect, 1.0);
+                        return mirror((uv - 0.5) * scale + 0.5);
+                    }
+
+                    void main() {
+                        float adjusted = u_progress * (1.0 + 2.0 * u_edge) - u_edge;
+                        float noise = fbm(v_uv * u_scale + vec2(0.0, u_progress * u_direction)) * 0.5 + 0.5;
+                        noise = smoothstep(0.0, 2.0, length(texture2D(u_to, coverUV(v_uv, u_toAspect)).rgb) + noise);
+                        float mixFactor = 1.0 - smoothstep(adjusted - u_edge, adjusted + u_edge, noise);
+                        
+                        vec2 fromUV = coverUV(v_uv + vec2(0.0, noise * u_progress * u_drift * u_direction), u_fromAspect);
+                        vec2 toUV = coverUV(v_uv + vec2(0.0, noise * (1.0 - u_progress) * -0.5 * u_drift * u_direction), u_toAspect);
+                        
+                        gl_FragColor = mix(texture2D(u_from, fromUV), texture2D(u_to, toUV), mixFactor);
+                    }`;
+
+                    function compile(gl, type, src) {
+                        const s = gl.createShader(type);
+                        gl.shaderSource(s, src); gl.compileShader(s);
+                        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+                        return s;
+                    }
+
+                    const vert = compile(gl, gl.VERTEX_SHADER, VERT);
+                    const frag = compile(gl, gl.FRAGMENT_SHADER, FRAG);
+                    const prog = gl.createProgram();
+                    gl.attachShader(prog, vert); gl.attachShader(prog, frag); gl.linkProgram(prog);
+                    gl.useProgram(prog);
+
+                    const buf = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+                    const loc = gl.getAttribLocation(prog, "a_position");
+                    gl.enableVertexAttribArray(loc);
+                    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+                    const uLocs = {};
+                    ["from", "to", "progress", "resolution", "fromAspect", "toAspect", "scale", "direction", "edge", "drift"].forEach(n => {
+                        uLocs[n] = gl.getUniformLocation(prog, "u_" + n);
+                    });
+
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+                    const textures = [];
+                    const aspects = [];
+                    let activeIdx = 0;
+                    let fromIdx = 0, toIdx = 0;
+                    let progress = 1;
+                    let startedAt = 0;
+                    let direction = 1;
+                    let duration = 1500;
+
+                    Promise.all(morphImages.map((src, i) => new Promise((res, rej) => {
+                        const img = new Image();
+                        img.crossOrigin = "anonymous";
+                        img.onload = () => {
+                            const tex = gl.createTexture();
+                            gl.bindTexture(gl.TEXTURE_2D, tex);
+                            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                            textures[i] = tex;
+                            aspects[i] = img.naturalWidth / Math.max(img.naturalHeight, 1);
+                            res();
+                        };
+                        img.onerror = rej;
+                        img.src = src;
+                    }))).then(() => {
+                        canvas.classList.add('ready');
+                        
+                        function resize() {
+                            const w = wrap.clientWidth; const h = wrap.clientHeight;
+                            if (canvas.width !== w || canvas.height !== h) {
+                                canvas.width = w; canvas.height = h;
+                                gl.viewport(0, 0, w, h);
+                            }
+                        }
+                        resize(); window.addEventListener('resize', resize);
+
+                        function draw() {
+                            if (progress < 1) {
+                                const t = Math.min((performance.now() - startedAt) / duration, 1);
+                                progress = t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2; 
+                            }
+
+                            if (textures[fromIdx] && textures[toIdx]) {
+                                gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, textures[fromIdx]); gl.uniform1i(uLocs.from, 0);
+                                gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, textures[toIdx]); gl.uniform1i(uLocs.to, 1);
+                                gl.uniform1f(uLocs.progress, progress);
+                                gl.uniform2f(uLocs.resolution, canvas.width, canvas.height);
+                                gl.uniform1f(uLocs.fromAspect, aspects[fromIdx]);
+                                gl.uniform1f(uLocs.toAspect, aspects[toIdx]);
+                                gl.uniform1f(uLocs.scale, 3.5);
+                                gl.uniform1f(uLocs.direction, direction);
+                                gl.uniform1f(uLocs.edge, 0.15);
+                                gl.uniform1f(uLocs.drift, 0.5);
+                                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                            }
+                            requestAnimationFrame(draw);
+                        }
+                        requestAnimationFrame(draw);
+
+                        const go = (dir) => {
+                            fromIdx = activeIdx;
+                            activeIdx = (activeIdx + dir + morphImages.length) % morphImages.length;
+                            toIdx = activeIdx;
+                            progress = 0;
+                            startedAt = performance.now();
+                            direction = dir;
+                        };
+
+                        btnNext.addEventListener('click', () => go(1));
+                        btnPrev.addEventListener('click', () => go(-1));
+                    });
+                }
+            }
+        }
+
+        // 23. EXPANDABLE TABS JS
+        const extTabsWrap = document.getElementById('fx-tabs');
+        if (extTabsWrap) {
+            const extTabs = extTabsWrap.querySelectorAll('.ext-tab');
+            document.addEventListener('click', (e) => {
+                const clickedTab = e.target.closest('.ext-tab');
+                if (clickedTab && extTabsWrap.contains(clickedTab)) {
+                    extTabs.forEach(t => t.classList.remove('active'));
+                    clickedTab.classList.add('active');
+                } else if (!extTabsWrap.contains(e.target)) {
+                    extTabs.forEach(t => t.classList.remove('active'));
+                }
+            });
+        }
+
+        // 24. GLASS FOLDER CARDS JS
+      {
+            const gfRoot = document.getElementById('fx-glass-folder');
+            if (gfRoot) {
+                const ART_PRESETS = {
+                    // Новый неоново-фиолетовый и лаймово-изумрудный градиент для задней панели папки
+                    cyber: { style: "marble", colors: ["#0b0716", "#2e1065", "#6d28d9", "#0f3f4c", "#10b981", "#c5f03a", "#f4ffe1"], scale: 0.68, warp: 2.9, angle: -0.45, gloss: 0.45, veins: 0.4 },
+                    aurora: { style: "streak", colors: ["#1e1b4b", "#4338ca", "#06b6d4", "#0f172a", "#8b5cf6", "#c5f03a", "#f8fafc"], scale: 0.7, warp: 1.5, angle: -0.62, gloss: 0.25, veins: 0 },
+                    ember: { style: "marble", colors: ["#07090c", "#16252c", "#3d5f68", "#1a1416", "#a3201a", "#ef4a2b", "#ff8a5c"], scale: 0.62, warp: 3.2, angle: -0.5, gloss: 0.55, veins: 0.6 },
+                    dusk: { style: "marble", colors: ["#120c18", "#3e2850", "#8f6c9c", "#2b1a24", "#b3502f", "#eab08a", "#fbe7d2"], scale: 0.75, warp: 3.6, angle: 0.8, gloss: 0.5, veins: 0.5 },
+                    verdant: { style: "marble", colors: ["#070b08", "#173024", "#4f7a5a", "#141812", "#a7843a", "#e9cf87", "#fbf3d6"], scale: 0.7, warp: 3.4, angle: 2.1, gloss: 0.5, veins: 0.5 }
+                };
+
+                function hexToRgb(hex) {
+                    let h = hex.trim().replace(/^#/, "");
+                    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+                    const n = parseInt(h, 16);
+                    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+                }
+
+                function gfRng(seed) {
+                    let a = seed >>> 0;
+                    return () => {
+                        a = (a + 0x6d2b79f5) >>> 0;
+                        let t = a;
+                        t = Math.imul(t ^ (t >>> 15), t | 1);
+                        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                    };
+                }
+
+                function hashString(s) {
+                    let h = 2166136261;
+                    for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+                    return h >>> 0;
+                }
+
+                function makeFbm(seed) {
+                    const r = gfRng(seed);
+                    const perm = new Uint8Array(512);
+                    const grad = new Float32Array(512);
+                    const p = [];
+                    for (let i = 0; i < 256; i++) p.push(i);
+                    for (let i = 255; i > 0; i--) {
+                        const j = Math.floor(r() * (i + 1));
+                        const t = p[i]; p[i] = p[j]; p[j] = t;
+                    }
+                    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+                    for (let i = 0; i < 256; i++) {
+                        const a = r() * Math.PI * 2;
+                        grad[i * 2] = Math.cos(a); grad[i * 2 + 1] = Math.sin(a);
+                    }
+                    const noise = (x, y) => {
+                        const xi = Math.floor(x), yi = Math.floor(y);
+                        const xf = x - xi, yf = y - yi;
+                        const X = xi & 255, Y = yi & 255;
+                        const h00 = perm[X + perm[Y]] * 2, h10 = perm[X + 1 + perm[Y]] * 2;
+                        const h01 = perm[X + perm[Y + 1]] * 2, h11 = perm[X + 1 + perm[Y + 1]] * 2;
+                        const d00 = grad[h00] * xf + grad[h00 + 1] * yf;
+                        const d10 = grad[h10] * (xf - 1) + grad[h10 + 1] * yf;
+                        const d01 = grad[h01] * xf + grad[h01 + 1] * (yf - 1);
+                        const d11 = grad[h11] * (xf - 1) + grad[h11 + 1] * (yf - 1);
+                        const u = xf * xf * xf * (xf * (xf * 6 - 15) + 10);
+                        const v = yf * yf * yf * (yf * (yf * 6 - 15) + 10);
+                        return d00 + u * (d10 - d00) + v * (d01 - d00 + u * (d11 - d01 - d10 + d00));
+                    };
+                    return (x, y, octaves) => {
+                        let sum = 0, amp = 0.5;
+                        for (let i = 0; i < octaves; i++) {
+                            sum += amp * noise(x, y);
+                            const nx = 1.6 * x + 1.2 * y + 7.1;
+                            y = -1.2 * x + 1.6 * y + 3.3;
+                            x = nx; amp *= 0.5;
+                        }
+                        return sum;
+                    };
+                }
+
+                const artCache = new Map();
+                function paintArtToCanvas(canvas, presetName, seed, w, h) {
+                    const key = presetName + "_" + seed + "_" + w + "_" + h;
+                    if (artCache.has(key)) {
+                        const cached = artCache.get(key);
+                        canvas.width = w; canvas.height = h;
+                        canvas.getContext('2d').putImageData(cached, 0, 0);
+                        canvas.setAttribute('data-ready', 'true');
+                        return;
+                    }
+                    const recipe = ART_PRESETS[presetName] || ART_PRESETS.cyber;
+                    const stops = recipe.colors.map((c, i) => ({ t: i / (recipe.colors.length - 1), c: hexToRgb(c) }));
+                    const scale = recipe.scale ?? 0.7, warp = recipe.warp ?? 3, gloss = recipe.gloss ?? 0.4, veins = recipe.veins ?? 0;
+                    const streak = recipe.style === "streak";
+                    const fbm = makeFbm(seed * 977 + 13);
+                    const r = gfRng(seed + 1);
+                    const ox = r() * 50, oy = r() * 50;
+                    const angle = (recipe.angle ?? 0) + (r() - 0.5) * 0.5;
+                    const ca = Math.cos(angle), sa = Math.sin(angle);
+                    const m = Math.min(w, h);
+                    const gw = Math.ceil(w / 2) + 3, gh = Math.ceil(h / 2) + 3;
+                    const G = new Float32Array(gw * gh), GQ = new Float32Array(gw * gh);
+                    const F = new Float32Array(w * h), Q = new Float32Array(w * h);
+                    const pixels = new Uint8ClampedArray(w * h * 4);
+
+                    for (let gy = 0; gy < gh; gy++) {
+                        for (let gx = 0; gx < gw; gx++) {
+                            const u = ((gx - 1) * 2 - w / 2) / m;
+                            const v = ((gy - 1) * 2 - h / 2) / m;
+                            let px = (u * ca - v * sa) * scale;
+                            let py = (u * sa + v * ca) * scale;
+                            if (streak) { px *= 0.14; py *= 2.2; }
+                            px += ox; py += oy;
+                            const qx = fbm(px, py, 3), qy = fbm(px + 5.2, py + 1.3, 3);
+                            const rx = fbm(px + warp * qx + 1.7, py + warp * qy + 9.2, 3);
+                            const ry = fbm(px + warp * qx + 8.3, py + warp * qy + 2.8, 3);
+                            G[gy * gw + gx] = fbm(px + warp * rx, py + warp * ry, 4);
+                            GQ[gy * gw + gx] = Math.sqrt(qx * qx + qy * qy);
+                        }
+                    }
+
+                    const cr = (a, b, c, d) => (-a + 9 * b + 9 * c - d) / 16;
+                    const T = new Float32Array(w * gh);
+                    for (let gy = 0; gy < gh; gy++) {
+                        const rowOff = gy * gw;
+                        for (let x = 0; x < w; x++) {
+                            const c = (x >> 1) + 1;
+                            T[gy * w + x] = x & 1 ? cr(G[rowOff + c - 1], G[rowOff + c], G[rowOff + c + 1], G[rowOff + c + 2]) : G[rowOff + c];
+                        }
+                    }
+                    for (let y = 0; y < h; y++) {
+                        const c = (y >> 1) + 1;
+                        for (let x = 0; x < w; x++) {
+                            F[y * w + x] = y & 1 ? cr(T[(c - 1) * w + x], T[c * w + x], T[(c + 1) * w + x], T[(c + 2) * w + x]) : T[c * w + x];
+                            const gx = (x >> 1) + 1;
+                            const q0 = GQ[c * gw + gx];
+                            const qx = x & 1 ? (q0 + GQ[c * gw + gx + 1]) / 2 : q0;
+                            const q1 = y & 1 ? (x & 1 ? (GQ[(c + 1) * gw + gx] + GQ[(c + 1) * gw + gx + 1]) / 2 : GQ[(c + 1) * gw + gx]) : qx;
+                            Q[y * w + x] = (qx + q1) / 2;
+                        }
+                    }
+
+                    const sample = [];
+                    const stride = Math.max(1, Math.floor(F.length / 2048));
+                    for (let i = 0; i < F.length; i += stride) sample.push(F[i]);
+                    sample.sort((a, b) => a - b);
+                    const lo = sample[Math.floor(sample.length * 0.02)];
+                    const hi = sample[Math.floor(sample.length * 0.98)];
+                    const k = 1 / (hi - lo || 1);
+                    const lx = -0.55, ly = -0.65, lz = 0.52, slope = k * m * 0.012;
+
+                    for (let y = 0; y < h; y++) {
+                        for (let x = 0; x < w; x++) {
+                            const i = y * w + x;
+                            let t = (F[i] - lo) * k;
+                            t = t < 0 ? 0 : t > 1 ? 1 : t;
+                            let j = 1;
+                            while (j < stops.length - 1 && stops[j].t < t) j++;
+                            const a = stops[j - 1], b = stops[j];
+                            let f = (t - a.t) / (b.t - a.t || 1);
+                            f = f < 0 ? 0 : f > 1 ? 1 : f;
+                            f = f * f * (3 - 2 * f);
+                            const gx = (F[x < w - 1 ? i + 1 : i] - F[x > 0 ? i - 1 : i]) * slope;
+                            const gy = (F[y < h - 1 ? i + w : i] - F[y > 0 ? i - w : i]) * slope;
+                            const nd = (-gx * lx - gy * ly + lz) / Math.sqrt(gx * gx + gy * gy + 1);
+                            const spec = Math.pow(nd > 0 ? nd : 0, 24) * gloss * 255;
+                            const silk = 1 + 0.035 * Math.sin(t * 150 + Q[i] * 24);
+                            const vein = veins * Math.max(0, 1 - Math.abs(Q[i] - 0.42) * 14) * 0.6;
+                            const lit = (0.82 + 0.28 * nd) * silk * (1 - vein);
+                            pixels[i * 4] = (a.c[0] + (b.c[0] - a.c[0]) * f) * lit + spec;
+                            pixels[i * 4 + 1] = (a.c[1] + (b.c[1] - a.c[1]) * f) * lit + spec;
+                            pixels[i * 4 + 2] = (a.c[2] + (b.c[2] - a.c[2]) * f) * lit + spec;
+                            pixels[i * 4 + 3] = 255;
+                        }
+                    }
+
+                    const imgData = new ImageData(pixels, w, h);
+                    artCache.set(key, imgData);
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').putImageData(imgData, 0, 0);
+                    canvas.setAttribute('data-ready', 'true');
+                }
+
+                const W = 340, H = 272, HEADROOM = 54, FRONT_TOP = 74, FRONT_H = H - FRONT_TOP;
+                const SHEET_W = 272, SHEET_H = 184, MAX_VISIBLE = 4;
+                const scaleK = 0.85;
+                const BACK_PATH = "M0 56A22 22 0 0 1 22 34L146 34C170 34 172 0 198 0L318 0A22 22 0 0 1 340 22L340 250A22 22 0 0 1 318 272L22 272A22 22 0 0 1 0 250Z";
+                const FRONT_PATH = `M0 22A22 22 0 0 1 22 0L118 0C144 0 146 32 172 32L318 32A22 22 0 0 1 340 54L340 ${FRONT_H - 22}A22 22 0 0 1 318 ${FRONT_H}L22 ${FRONT_H}A22 22 0 0 1 0 ${FRONT_H - 22}Z`;
+
+                let gfFiles = [
+                    { id: 0, name: "UI Kit — v4.fig", meta: "FIG · 14.2 MB", art: "aurora" },
+                    { id: 1, name: "Brandbook 2026", meta: "24 slides", art: "dusk" },
+                    { id: 2, name: "Design System.pdf", meta: "PDF · 3.4 MB" }
+                ];
+                let nextFileId = 3;
+                let droppedId = null;
+
+                gfRoot.innerHTML = `
+                    <div class="gf-stage" style="transform: translateY(${HEADROOM * scaleK}px) scale(${scaleK});">
+                        <div class="gf-tilt">
+                            <div class="gf-shadow" aria-hidden="true"></div>
+                            <div class="gf-back" aria-hidden="true">
+                                <canvas class="gf-art" id="gf-back-canvas" style="width: ${W + 24}px; height: ${H + 24}px;"></canvas>
+                                <div class="gf-back-sheen"></div>
+                            </div>
+                            <svg class="gf-rim gf-back-rim" viewBox="0 0 ${W} ${H}" aria-hidden="true">
+                                <path d="${BACK_PATH}"></path>
+                            </svg>
+                            <div class="gf-front-hinge">
+                                <div class="gf-front" id="gf-front-panel">
+                                    <div class="gf-tint" aria-hidden="true"></div>
+                                    <div class="gf-spec" aria-hidden="true"></div>
+                                    <svg class="gf-rim gf-front-rim" viewBox="0 0 ${W} ${FRONT_H}" aria-hidden="true">
+                                        <defs>
+                                            <linearGradient id="gf-rim-grad" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0" stop-color="#fff" stop-opacity="0.95"></stop>
+                                                <stop offset="0.35" stop-color="#fff" stop-opacity="0.35"></stop>
+                                                <stop offset="1" stop-color="#fff" stop-opacity="0.12"></stop>
+                                            </linearGradient>
+                                        </defs>
+                                        <path d="${FRONT_PATH}" stroke="url(#gf-rim-grad)"></path>
+                                    </svg>
+                                    <button type="button" class="gf-hit" id="gf-hit-btn" aria-label="Toggle My Design folder"></button>
+                                    <div class="gf-label">
+                                        <span class="gf-title">My Design</span>
+                                        <span class="gf-meta" id="gf-meta-count">3 items</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="gf-files" id="gf-files-list" role="list"></div>
+                            <button type="button" class="gf-key gf-key--add" id="gf-add-btn" aria-label="Add file">
+                                <svg class="gf-glyph gf-glyph--plus" id="gf-plus-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 4.5v15M4.5 12h15"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                const backCanvas = document.getElementById('gf-back-canvas');
+                paintArtToCanvas(backCanvas, 'aurora', 3, W + 24, H + 24);
+
+                const filesListEl = document.getElementById('gf-files-list');
+                const metaCountEl = document.getElementById('gf-meta-count');
+                const frontPanelEl = document.getElementById('gf-front-panel');
+                const hitBtn = document.getElementById('gf-hit-btn');
+                const addBtn = document.getElementById('gf-add-btn');
+
+                function renderFiles() {
+                    const start = Math.max(0, gfFiles.length - MAX_VISIBLE);
+                    const visible = gfFiles.slice(start);
+                    filesListEl.innerHTML = '';
+
+                    visible.forEach((file, v) => {
+                        const slot = visible.length <= 1 ? 0 : (v / (visible.length - 1)) * 2 - 1;
+                        const depth = visible.length - 1 - v;
+                        const jitter = gfRng(hashString(file.name) + file.id);
+                        const jx = ((jitter() - 0.5) * 10).toFixed(2) + "px";
+                        const jr = ((jitter() - 0.5) * 3.2).toFixed(2) + "deg";
+                        const isArt = !!file.art;
+                        const isDrop = file.id === droppedId;
+
+                        const slotDiv = document.createElement('div');
+                        slotDiv.className = 'gf-sheet-slot';
+                        slotDiv.setAttribute('role', 'listitem');
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'gf-sheet' + (isArt ? ' gf-sheet--art' : '') + (isDrop ? ' gf-sheet--drop' : '');
+                        btn.style.setProperty('--gf-slot', slot);
+                        btn.style.setProperty('--gf-depth', depth);
+                        btn.style.setProperty('--gf-jx', jx);
+                        btn.style.setProperty('--gf-jr', jr);
+                        btn.style.zIndex = v + 1;
+
+                        if (isArt) {
+                            const artCanvas = document.createElement('canvas');
+                            artCanvas.className = 'gf-sheet-art';
+                            artCanvas.style.width = SHEET_W + 'px';
+                            artCanvas.style.height = SHEET_H + 'px';
+                            btn.appendChild(artCanvas);
+                            paintArtToCanvas(artCanvas, file.art, hashString(file.name) % 997, SHEET_W, SHEET_H);
+                        } else {
+                            const lines = document.createElement('span');
+                            lines.className = 'gf-lines';
+                            lines.innerHTML = `<i style="width:86%"></i><i style="width:92%"></i><i style="width:64%"></i><i style="width:88%"></i><i style="width:42%"></i>`;
+                            btn.appendChild(lines);
+                        }
+
+                        const head = document.createElement('span');
+                        head.className = 'gf-sheet-head';
+                        head.innerHTML = `<span class="gf-sheet-name">${file.name}</span>${file.meta ? `<span class="gf-sheet-meta">${file.meta}</span>` : ''}`;
+                        btn.appendChild(head);
+
+                        if (isDrop) {
+                            btn.addEventListener('animationend', () => {
+                                btn.classList.remove('gf-sheet--drop');
+                                droppedId = null;
+                            }, { once: true });
+                        }
+
+                        slotDiv.appendChild(btn);
+                        filesListEl.appendChild(slotDiv);
+                    });
+
+                    metaCountEl.textContent = gfFiles.length + (gfFiles.length === 1 ? " item" : " items");
+                    metaCountEl.style.animation = 'none';
+                    void metaCountEl.offsetWidth;
+                    metaCountEl.style.animation = '';
+                }
+
+                renderFiles();
+
+                hitBtn.addEventListener('click', () => {
+                    if (gfRoot.hasAttribute('data-open')) {
+                        gfRoot.removeAttribute('data-open');
+                    } else {
+                        gfRoot.setAttribute('data-open', 'true');
+                    }
+                });
+
+                const extraPresets = [null, "verdant", "aurora", "ember", "dusk"];
+                addBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const id = nextFileId++;
+                    const preset = extraPresets[id % extraPresets.length];
+                    gfFiles.push({
+                        id,
+                        name: "Untitled " + gfFiles.length,
+                        meta: "Just now",
+                        art: preset
+                    });
+                    droppedId = id;
+                    renderFiles();
+
+                    frontPanelEl.classList.remove('gf-front--bump');
+                    void frontPanelEl.offsetWidth;
+                    frontPanelEl.classList.add('gf-front--bump');
+
+                    const plusIcon = document.getElementById('gf-plus-icon');
+                    if (plusIcon) {
+                        plusIcon.style.animation = 'none';
+                        void plusIcon.offsetWidth;
+                        plusIcon.style.animation = '';
+                    }
+                });
+
+                gfRoot.addEventListener('pointermove', (e) => {
+                    if (e.pointerType === 'touch') return;
+                    const r = gfRoot.getBoundingClientRect();
+                    const px = ((e.clientX - r.left) / r.width) * 2 - 1;
+                    const py = ((e.clientY - r.top) / r.height) * 2 - 1;
+                    gfRoot.style.setProperty('--gf-px', px.toFixed(3));
+                    gfRoot.style.setProperty('--gf-py', py.toFixed(3));
+                });
+
+                gfRoot.addEventListener('pointerleave', () => {
+                    gfRoot.style.setProperty('--gf-px', '0');
+                    gfRoot.style.setProperty('--gf-py', '0');
+                });
+
+                document.addEventListener('pointerdown', (e) => {
+                    if (gfRoot.hasAttribute('data-open') && !gfRoot.contains(e.target)) {
+                        gfRoot.removeAttribute('data-open');
+                    }
+                });
+            }
+        }
+
+        // ==========================================
+        // 25. MACOS DOCK JS
+        // ==========================================
+        {
+            const dockBar = document.getElementById('fx-mac-dock');
+            const dockInner = document.getElementById('fx-mac-dock-inner');
+
+            if (dockBar && dockInner) {
+                const dockApps = [
+                    { id: 'finder', name: 'Finder', bg: 'linear-gradient(180deg, #54b6ff 0%, #1d74f2 100%)', svg: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"/><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M9.5 15a3.5 3.5 0 0 0 5 0"/>' },
+                    { id: 'launchpad', name: 'Projects', bg: 'linear-gradient(135deg, #ff6b6b 0%, #f06595 50%, #845ef7 100%)', svg: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>' },
+                    { id: 'terminal', name: 'Terminal', bg: 'linear-gradient(180deg, #343a40 0%, #111315 100%)', svg: '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>' },
+                    { id: 'mail', name: 'Mail', bg: 'linear-gradient(180deg, #4dabf7 0%, #1864ab 100%)', svg: '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>' },
+                    { id: 'notes', name: 'Notes', bg: 'linear-gradient(180deg, #ffd43b 0%, #f59f00 100%)', svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
+                    { id: 'photos', name: 'Gallery', bg: 'linear-gradient(135deg, #C5F03A 0%, #20c997 100%)', svg: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>' },
+                    { id: 'music', name: 'Audio', bg: 'linear-gradient(180deg, #ff4d6d 0%, #c9184a 100%)', svg: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>' }
+                ];
+
+                let activeAppId = 'finder';
+                const baseIconSize = 54;
+                const maxScale = 1.65;
+                const minScale = 1.0;
+                const effectWidth = 240;
+                const baseSpacing = 8;
+                const padding = 10;
+
+                let mouseX = null;
+                let currentScales = dockApps.map(() => 1);
+                let currentPositions = [];
+                let dockRaf = null;
+
+                dockInner.style.height = baseIconSize + 'px';
+                dockBar.style.padding = padding + 'px';
+
+                const itemEls = dockApps.map((app) => {
+                    const el = document.createElement('div');
+                    el.className = 'mac-dock-item';
+                    el.innerHTML = `
+                        <div class="mac-dock-tooltip">${app.name}</div>
+                        <div class="mac-dock-icon" style="background: ${app.bg};">
+                            <svg viewBox="0 0 24 24">${app.svg}</svg>
+                        </div>
+                        <div class="mac-dock-dot" style="display: ${activeAppId === app.id ? 'block' : 'none'};"></div>
+                    `;
+                    el.addEventListener('click', () => {
+                        el.style.transition = 'transform 0.2s ease-out';
+                        el.style.transform = 'translateY(-12px)';
+                        setTimeout(() => { el.style.transform = 'translateY(0px)'; }, 200);
+
+                        activeAppId = app.id;
+                        itemEls.forEach((itemEl, idx) => {
+                            const dot = itemEl.querySelector('.mac-dock-dot');
+                            if (dot) dot.style.display = dockApps[idx].id === activeAppId ? 'block' : 'none';
+                        });
+                    });
+                    dockInner.appendChild(el);
+                    return el;
+                });
+
+                function calcTargets(mPos) {
+                    if (mPos === null) return dockApps.map(() => minScale);
+                    return dockApps.map((_, i) => {
+                        const center = (i * (baseIconSize + baseSpacing)) + (baseIconSize / 2);
+                        const minX = mPos - (effectWidth / 2);
+                        const maxX = mPos + (effectWidth / 2);
+                        if (center < minX || center > maxX) return minScale;
+                        const theta = ((center - minX) / effectWidth) * 2 * Math.PI;
+                        const capped = Math.min(Math.max(theta, 0), 2 * Math.PI);
+                        const factor = (1 - Math.cos(capped)) / 2;
+                        return minScale + (factor * (maxScale - minScale));
+                    });
+                }
+
+                function calcPositions(scales) {
+                    let x = 0;
+                    return scales.map((s) => {
+                        const w = baseIconSize * s;
+                        const cx = x + (w / 2);
+                        x += w + baseSpacing;
+                        return cx;
+                    });
+                }
+
+                function renderDock() {
+                    const targetScales = calcTargets(mouseX);
+                    const targetPositions = calcPositions(targetScales);
+                    const lerp = mouseX !== null ? 0.22 : 0.14;
+
+                    let needsMore = false;
+                    for (let i = 0; i < dockApps.length; i++) {
+                        currentScales[i] += (targetScales[i] - currentScales[i]) * lerp;
+                        if (currentPositions[i] === undefined) currentPositions[i] = targetPositions[i];
+                        else currentPositions[i] += (targetPositions[i] - currentPositions[i]) * lerp;
+
+                        if (Math.abs(currentScales[i] - targetScales[i]) > 0.002 || Math.abs(currentPositions[i] - targetPositions[i]) > 0.1) {
+                            needsMore = true;
+                        }
+
+                        const sz = baseIconSize * currentScales[i];
+                        const el = itemEls[i];
+                        el.style.width = sz + 'px';
+                        el.style.height = sz + 'px';
+                        el.style.left = (currentPositions[i] - sz / 2) + 'px';
+                        el.style.zIndex = Math.round(currentScales[i] * 10);
+                    }
+
+                    const maxRight = Math.max(...currentPositions.map((p, i) => p + (baseIconSize * currentScales[i]) / 2));
+                    dockBar.style.width = (maxRight + padding * 2) + 'px';
+
+                    if (needsMore || mouseX !== null) {
+                        dockRaf = requestAnimationFrame(renderDock);
+                    } else {
+                        dockRaf = null;
+                    }
+                }
+
+                function kickDock() {
+                    if (!dockRaf) dockRaf = requestAnimationFrame(renderDock);
+                }
+
+                dockBar.addEventListener('mousemove', (e) => {
+                    const rect = dockBar.getBoundingClientRect();
+                    mouseX = e.clientX - rect.left - padding;
+                    kickDock();
+                });
+
+                dockBar.addEventListener('mouseleave', () => {
+                    mouseX = null;
+                    kickDock();
+                });
+
+                currentPositions = calcPositions(currentScales);
+                kickDock();
+            }
+        }
+
+        // ==========================================
+        // 27. ASCII DITHER BACKGROUND JS
+        // ==========================================
+        {
+            const stage = document.getElementById('fx-ascii-dither-stage');
+            const canvas = document.getElementById('fx-ascii-dither-canvas');
+            const modeWrap = document.getElementById('fx-ascii-dither-modes');
+
+            if (stage && canvas && modeWrap) {
+                const ctx = canvas.getContext('2d');
+                const ASCII_RAMP = " .:-=+*#%@";
+                const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
+
+                let mode = 'ascii';
+                const cellSize = 14;
+                const cursorRadius = 140;
+                let cols = 0, rows = 0, dpr = 1;
+                let width = 0, height = 0;
+                const cursor = { x: -1e4, y: -1e4, tx: -1e4, ty: -1e4 };
+                let t = 0;
+
+                function valNoise(x, y, time) {
+                    const v =
+                        Math.sin(x * 1.7 + time * 0.6) +
+                        Math.sin(y * 2.3 - time * 0.4) +
+                        Math.sin((x + y) * 1.1 + time * 0.25) +
+                        Math.sin(Math.hypot(x - 6, y - 4) * 1.9 - time * 0.7);
+                    return v / 8 + 0.5;
+                }
+
+                function resizeDither() {
+                    dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    width = stage.clientWidth;
+                    height = stage.clientHeight;
+                    canvas.width = Math.max(1, Math.floor(width * dpr));
+                    canvas.height = Math.max(1, Math.floor(height * dpr));
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    cols = Math.ceil(width / cellSize);
+                    rows = Math.ceil(height / cellSize);
+                }
+
+                resizeDither();
+                window.addEventListener('resize', resizeDither);
+
+                stage.addEventListener('pointermove', (e) => {
+                    const rect = stage.getBoundingClientRect();
+                    cursor.tx = e.clientX - rect.left;
+                    cursor.ty = e.clientY - rect.top;
+                });
+
+                stage.addEventListener('pointerleave', () => {
+                    cursor.tx = -1e4;
+                    cursor.ty = -1e4;
+                });
+
+                modeWrap.querySelectorAll('.ascii-mode-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        modeWrap.querySelectorAll('.ascii-mode-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        mode = btn.getAttribute('data-mode') || 'ascii';
+                    });
+                });
+
+                function renderDitherFrame() {
+                    t += 0.03;
+                    cursor.x += (cursor.tx - cursor.x) * 0.18;
+                    cursor.y += (cursor.ty - cursor.y) * 0.18;
+
+                    ctx.fillStyle = '#050505';
+                    ctx.fillRect(0, 0, width, height);
+
+                    ctx.fillStyle = '#C5F03A';
+                    ctx.font = `600 ${cellSize}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    for (let r = 0; r < rows; r++) {
+                        const cy = r * cellSize + cellSize / 2;
+                        for (let c = 0; c < cols; c++) {
+                            const cx = c * cellSize + cellSize / 2;
+                            let v = valNoise(c * 0.15, r * 0.15, t);
+
+                            const dist = Math.hypot(cx - cursor.x, cy - cursor.y);
+                            if (dist < cursorRadius) {
+                                const boost = 1 - dist / cursorRadius;
+                                v = Math.min(1, v + boost * 0.55);
+                            }
+
+                            if (mode === 'ascii') {
+                                const idx = Math.min(ASCII_RAMP.length - 1, Math.max(0, Math.floor(v * ASCII_RAMP.length)));
+                                const ch = ASCII_RAMP[idx];
+                                if (ch !== ' ') {
+                                    ctx.globalAlpha = 0.25 + v * 0.75;
+                                    ctx.fillText(ch, cx, cy);
+                                }
+                            } else if (mode === 'dither') {
+                                const bayerVal = BAYER[((r & 3) << 2) | (c & 3)];
+                                if (v > bayerVal) {
+                                    ctx.globalAlpha = 0.35 + v * 0.65;
+                                    const sz = cellSize * 0.72;
+                                    ctx.fillRect(cx - sz / 2, cy - sz / 2, sz, sz);
+                                }
+                            } else if (mode === 'dot') {
+                                const rad = (cellSize * 0.45) * v;
+                                if (rad > 0.6) {
+                                    ctx.globalAlpha = 0.3 + v * 0.7;
+                                    ctx.beginPath();
+                                    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                            }
+                        }
+                    }
+                    ctx.globalAlpha = 1;
+                    requestAnimationFrame(renderDitherFrame);
+                }
+                requestAnimationFrame(renderDitherFrame);
+            }
+        }
+
+    </script>
+</body>
+</html>
